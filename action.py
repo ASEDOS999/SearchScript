@@ -50,8 +50,25 @@ class tree:
 		self.kids.append((value, type))
 
 def process_type(vert, act):
-	# Some actions
-	return True
+	object_type = []
+	subject_type = []
+	time_type = []
+	place_type = []
+	way_type = []
+	array = [object_type, subject_type, time_type, place_type, way_type]
+	answer = [False, False, False, False, False]
+	for i in range(len(array)):
+		answer[i] = True if vert[1] in array[i]:
+	def _(i):
+		ret = False
+		for j in range(len(answer)):
+			ret = ret or answer[j] if i != j
+		return ret
+	act.object.append(vert[0]) if answer[0] and _(0)
+	act.subject.append(vert[0]) if answer[1] and _(1)
+	act.time.append(vert[0]) if answer[2] and _(2)
+	act.place.append(vert[0]) if answer[3] and _(3)
+	act.way.append(vert[0]) if answer[4] and _(4)
 
 def get_actions(sentence, root):
 	all_actions = []
