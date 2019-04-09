@@ -30,7 +30,7 @@ class action:
 def is_verb(x):
 	return True
 
-def action_verb(x)
+def action_verb(x):
 	def is_not_modal():
 		return True
 	
@@ -46,7 +46,7 @@ class tree:
 
 	# The arguments of this function is a value of new vertices
 	# and type of relationship between parent and kid
-	def add_child(self, value, type is None):
+	def add_child(self, value, type = None):
 		self.kids.append((value, type))
 
 def process_type(vert, act):
@@ -58,17 +58,17 @@ def process_type(vert, act):
 	array = [object_type, subject_type, time_type, place_type, way_type]
 	answer = [False, False, False, False, False]
 	for i in range(len(array)):
-		answer[i] = True if vert[1] in array[i]:
+		answer[i] = True if vert[1] in array[i] else False
 	def _(i):
 		ret = False
 		for j in range(len(answer)):
-			ret = ret or answer[j] if i != j
+			ret = ret or answer[j] if i != j else ret
 		return ret
-	act.object.append(vert[0]) if answer[0] and _(0)
-	act.subject.append(vert[0]) if answer[1] and _(1)
-	act.time.append(vert[0]) if answer[2] and _(2)
-	act.place.append(vert[0]) if answer[3] and _(3)
-	act.way.append(vert[0]) if answer[4] and _(4)
+	act.object.append(vert[0]) if answer[0] and _(0) else None
+	act.subject.append(vert[0]) if answer[1] and _(1) else None
+	act.time.append(vert[0]) if answer[2] and _(2) else None
+	act.place.append(vert[0]) if answer[3] and _(3) else None
+	act.way.append(vert[0]) if answer[4] and _(4) else None
 
 def get_actions(sentence, root):
 	all_actions = []
@@ -90,3 +90,6 @@ def get_actions(sentence, root):
 	
 	research(root)
 	return all_actions
+
+act = action("verb")
+process_type([0, "s"], act)
