@@ -28,7 +28,7 @@ def construct_tree(text):
 					analyses_res['morph'][j][i]))
 			vertices_list.append(vert)
 		vertices_list_list.append(vertices_list)
-	root = None
+	root_list = []
 	for i in range(len(vertices_list_list)):
 		list = vertices_list_list[i]
 		for j in range(len(analyses_res['syntax_dep_tree'][i])):
@@ -36,8 +36,8 @@ def construct_tree(text):
 			if _.parent != -1:
 				list[_.parent].add_child(list[j], _.link_name)
 			else:
-				root = list[j]
-	return root
+				root_list.append(list[j])
+	return root_list
 
 class action:
 	name_action = 'Action'
