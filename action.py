@@ -8,8 +8,33 @@ class tree:
 	def add_child(self, value, type = None):
 		self.kids.append((tree(value), type))
 
-def construct_tree(tree, sentence):
-	root = tree(tree[0], sentence[0])
+class word:
+	def __init__(self, lemma, postag, morph):
+		self.lemma = lemma
+		self.postag = postag
+		self.morph = morph
+
+def construct_tree(text):
+	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
+	analyses_res = proc_syntax(text)
+	vertices_list_list = []
+	for j in analyses_res['lemma']:
+		vertices_list = []
+		for i in len(j):
+			vert = tree(word(analyses_res['lemma'][i],
+					analyses_res['postag'][i],
+					analyses_res['morph'][i]))
+			vertices_list.append((vert, i))
+		vertices_list_list.append(vertices_list)
+	root = None
+	for i in len(vertices_list):
+		list = verices_list[i]
+		for j in len(analyses_res['syntax_deep_tree'][i]):
+			_ = analuses_res['syntax_deep_tree'][i][j]
+			if j != -1:
+				list[_.parent].add_child(list[j], _.link_name)
+			else:
+				root = list[j]
 	return root
 
 class action:
