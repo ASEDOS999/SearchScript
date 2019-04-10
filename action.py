@@ -1,3 +1,4 @@
+
 class tree:
 	def __init__(self, value):
 		self.value = value
@@ -15,23 +16,24 @@ class word:
 		self.morph = morph
 
 def construct_tree(text):
+	from isanlp.processor_remote import ProcessorRemote
 	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
 	analyses_res = proc_syntax(text)
 	vertices_list_list = []
-	for j in analyses_res['lemma']:
+	for j in range(len(analyses_res['lemma'])):
 		vertices_list = []
-		for i in len(j):
-			vert = tree(word(analyses_res['lemma'][i],
-					analyses_res['postag'][i],
-					analyses_res['morph'][i]))
-			vertices_list.append((vert, i))
+		for i in range(len(analyses_res['lemma'][j])):
+			vert = tree(word(analyses_res['lemma'][j][i],
+					analyses_res['postag'][j][i],
+					analyses_res['morph'][j][i]))
+			vertices_list.append(vert)
 		vertices_list_list.append(vertices_list)
 	root = None
-	for i in len(vertices_list):
-		list = verices_list[i]
-		for j in len(analyses_res['syntax_deep_tree'][i]):
-			_ = analuses_res['syntax_deep_tree'][i][j]
-			if j != -1:
+	for i in range(len(vertices_list_list)):
+		list = vertices_list_list[i]
+		for j in range(len(analyses_res['syntax_dep_tree'][i])):
+			_ = analyses_res['syntax_dep_tree'][i][j]
+			if _.parent != -1:
 				list[_.parent].add_child(list[j], _.link_name)
 			else:
 				root = list[j]
@@ -39,7 +41,6 @@ def construct_tree(text):
 
 class action:
 	name_action = 'Action'
-	
 	def __init__(self, verb, subject = [], object = [], time = [], place = [], purpose = [], way = []):
 		self.verb = verb
 		self.object = object
