@@ -6,8 +6,8 @@ class tree:
 
 	# The arguments of this function is a value of new vertices
 	# and type of relationship between parent and kid
-	def add_child(self, value, type = None):
-		self.kids.append((tree(value), type))
+	def add_child(self, value, mytype = None):
+		self.kids.append((value, mytype))
 
 class word:
 	def __init__(self, lemma, postag, morph):
@@ -18,25 +18,25 @@ class word:
 def construct_tree(text):
 	from isanlp.processor_remote import ProcessorRemote
 	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
-	analyses_res = proc_syntax(text)
+	analysis_res = proc_syntax(text)
 	vertices_list_list = []
-	for j in range(len(analyses_res['lemma'])):
+	for j in range(len(analysis_res['lemma'])):
 		vertices_list = []
-		for i in range(len(analyses_res['lemma'][j])):
-			vert = tree(word(analyses_res['lemma'][j][i],
-					analyses_res['postag'][j][i],
-					analyses_res['morph'][j][i]))
+		for i in range(len(analysis_res['lemma'][j])):
+			vert = tree(word(analysis_res['lemma'][j][i],
+					analysis_res['postag'][j][i],
+					analysis_res['morph'][j][i]))
 			vertices_list.append(vert)
 		vertices_list_list.append(vertices_list)
 	root_list = []
 	for i in range(len(vertices_list_list)):
-		list = vertices_list_list[i]
-		for j in range(len(analyses_res['syntax_dep_tree'][i])):
-			_ = analyses_res['syntax_dep_tree'][i][j]
+		list_ = vertices_list_list[i]
+		for j in range(len(analysis_res['syntax_dep_tree'][i])):
+			_ = analysis_res['syntax_dep_tree'][i][j]
 			if _.parent != -1:
-				list[_.parent].add_child(list[j], _.link_name)
+				list_[_.parent].add_child(list_[j], _.link_name)
 			else:
-				root_list.append(list[j])
+				root_list.append(list_[j])
 	return root_list
 
 class action:
