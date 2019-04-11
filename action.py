@@ -43,10 +43,10 @@ class action:
 	name_action = 'Action'
 	def __init__(self, verb, subject = [], object = [], time = [], place = [], purpose = [], way = []):
 		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
-		inform = [verb, subject, object, time, place, purpose, way]
 		self.inform = dict()
 		for i in range(len(self.keys)):
-			self.inform[self.keys[i]] = inform[i]
+			self.inform[self.keys[i]] = []
+		self.inform['VERB'] = verb
 def action_verb(x):
 	def is_verb():
 		return x.value.postag == 'VERB'
@@ -82,13 +82,13 @@ def process_type(vert, act):
 			ret = ret or answer[j] if i != j else ret
 		return ret
 	for i in range(1, len(act.keys)):
-		act.inform[act.keys[i]].append(vert[0]) if answer[i - 1] and not _(i - 1) else None
+		act.inform[act.keys[i]].append(vert[0].value) if answer[i - 1] and not _(i - 1) else None
 
 def get_inform_parent(parent, act):
 	return 0
 
 
-def get_actions(sentence, root):
+def get_actions(root):
 	all_actions = []
 	
 	def research(parent):
