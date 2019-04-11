@@ -71,17 +71,18 @@ class action:
 	def get_way(self):
 		return self.way
 
-def is_verb(x):
-	return True
-
 def action_verb(x):
-	def is_not_modal():
-		return True
+	def is_verb():
+		return x.value.postag == 'VERB'
+	
+	def is_modal():
+		list_modal = ['быть', 'являться', 'мочь', 'уметь']
+		return (x.value.lemma in list_modal)
 	
 	def is_indicative():
-		return True
+		return x.value.morph.__contains__('Mood') and x.value.morph['Mood'] == 'Ind'
 	
-	return is_not_modal() and is_indicative()
+	return is_verb() and is_indicative() and not is_modal()
 
 def process_type(vert, act):
 	object_type = ['dobj', 'iobj', 'xcomp']
@@ -122,18 +123,22 @@ def get_actions(sentence, root):
 		list = []
 		for i in parent.kids:
 			list.append(i)
-			if is_verb(i[0]) and action_verb(i[0]):
-				act = action(verb = i[0].value)
-				get_inform_parent(parent, act)
-				information = research(i[0])
-				for j in information:
-					process_type(j, act)
-				all_actions.append(act)
-			else:
-				research(i[0])
+			new_act(i[0], parent)
 		return list
 	
-	research(root)
+	def new_act(x, parent):
+		if action_verb(x):
+			act = action(verb = x.value)
+			get_inform_parent(parent, act)
+			information = research(x)
+			for j in information:
+				process_type(j, act)
+			if act is not None:
+				all_actions.append(act)
+		else:
+			research(x)
+	
+	new_act(root, None)
 	return all_actions
 
 act = action("verb")
