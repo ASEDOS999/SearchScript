@@ -61,14 +61,14 @@ def action_verb(x):
 	return is_verb() and is_indicative() and not is_modal()
 
 def process_type(vert, act):
-	object_type = ['dobj', 'iobj', 'xcomp']
 	subject_type = ['agent', 'nsubj', 'xsubj']
+	object_type = ['dobj', 'iobj', 'xcomp', 'obj']
 	time_type = ['tmod']
 	place_type = ['advcl']
 	purpose_type = ['advcl']
 	way_type = ['acomp']
-	array = [object_type, 
-		subject_type, 
+	array = [subject_type, 
+		object_type, 
 		time_type, 
 		place_type, 
 		purpose_type,
@@ -82,7 +82,7 @@ def process_type(vert, act):
 			ret = ret or answer[j] if i != j else ret
 		return ret
 	for i in range(1, len(act.keys)):
-		act.inform[act.keys[i]].append(vert[0]) if answer[i - 1] and _(i - 1) else None
+		act.inform[act.keys[i]].append(vert[0]) if answer[i - 1] and not _(i - 1) else None
 
 def get_inform_parent(parent, act):
 	return 0
