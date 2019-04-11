@@ -42,35 +42,11 @@ def construct_tree(text):
 class action:
 	name_action = 'Action'
 	def __init__(self, verb, subject = [], object = [], time = [], place = [], purpose = [], way = []):
-		self.verb = verb
-		self.object = object
-		self.subject = subject
-		self.time = time
-		self.place = place
-		self.purpose = purpose
-		self.way = way
-	
-	def get_verb(self):
-		return self.verb
-	
-	def get_object(self):
-		return self.object
-	
-	def get_subject(self):
-		return self.subject
-	
-	def get_time(self):
-		return self.time
-	
-	def get_place(self):
-		return self.place
-	
-	def get_purpose(self):
-		return self.purpose
-	
-	def get_way(self):
-		return self.way
-
+		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
+		inform = [verb, subject, object, time, place, purpose, way]
+		self.inform = dict()
+		for i in range(len(self.keys)):
+			self.inform[self.keys[i]] = inform[i]
 def action_verb(x):
 	def is_verb():
 		return x.value.postag == 'VERB'
@@ -105,12 +81,8 @@ def process_type(vert, act):
 		for j in range(len(answer)):
 			ret = ret or answer[j] if i != j else ret
 		return ret
-	act.object.append(vert[0]) if answer[0] and _(0) else None
-	act.subject.append(vert[0]) if answer[1] and _(1) else None
-	act.time.append(vert[0]) if answer[2] and _(2) else None
-	act.place.append(vert[0]) if answer[3] and _(3) else None
-	act.purpose.append(vert[0]) if answer[4] and _(4) else None
-	act.way.append(vert[0]) if answer[5] and _(5) else None
+	for i in range(1, len(act.keys)):
+		act.inform[act.keys[i]].append(vert[0]) if answer[i - 1] and _(i - 1) else None
 
 def get_inform_parent(parent, act):
 	return 0
@@ -140,6 +112,3 @@ def get_actions(sentence, root):
 	
 	new_act(root, None)
 	return all_actions
-
-act = action("verb")
-process_type([0, "s"], act)
