@@ -7,7 +7,8 @@ import pandas as pd
 def get_objects(root_list):
 	# Function for to extract list of kids and parent of verb from syntactic tree
 	# Input is a list of tree roots
-	# Output is a lists of kids and parents	list_ = []
+	# Output is a lists of kids and parents
+	list_ = []
 	parent_verb = []
 	def research(parent, mytype = None):
 		ret = False
@@ -45,7 +46,7 @@ def extract_data(root_list):
 				for i in range(len(list_feat_[0]))})
 	return df
 
-def extract_feat_from_dataframe(dataframe):
+def extract_feat_from_dataframe(df):
 	list_ = [[] for i in range(len(df.columns.values.tolist()))]
 	for j in range(len(df.columns.values.tolist())):
 		for i in df[df.columns.values[j]]:
@@ -71,3 +72,4 @@ def create_dataframe(root_list, name = 'features.csv'):
 	# Create and save dataframe as *.csv
 	df = extract_data(root_list)
 	df.to_csv(name, sep = '\t', encoding = 'utf')
+	return df
