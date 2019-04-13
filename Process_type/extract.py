@@ -71,5 +71,5 @@ def extract_feat_from_dataframe(df):
 def create_dataframe(root_list, name = 'features.csv'):
 	# Create and save dataframe as *.csv
 	df = extract_data(root_list)
-	df.to_csv(name, sep = '\t', encoding = 'utf')
+	df.to_csv(name, encoding = 'utf', index = False)
 	return df
