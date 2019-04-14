@@ -26,6 +26,7 @@ def get_objects(root_list):
 def get_feat(i):
 	# Extract required information from all information about one word
 	feat = []
+	feat.append(i[0].value.lemma)
 	feat.append(i[1])
 	x = i[0]
 	if x.value.morph.__contains__('Case'):
@@ -40,21 +41,42 @@ def extract_data(root_list):
 	list_feat_ = []
 	for i in list_:
 		list_feat_.append(get_feat(i))
-	list_feat_ = [i for i in list_feat_ if i[1] != 'PUNCT']
+	list_feat_ = [i for i in list_feat_ if i[2] != 'PUNCT']
 	df = pd.DataFrame(data = 
 			{'c%d'%(i): [list_feat_[j][i] for j in range(len(list_feat_))] 
 				for i in range(len(list_feat_[0]))})
 	return df
 
-def extract_feat_from_dataframe(df):
-	list_ = [[] for i in range(len(df.columns.values.tolist()))]
-	for j in range(len(df.columns.values.tolist())):
-		for i in df[df.columns.values[j]]:
-			if not i in list_[j]:
-				list_[j].append(i)
+def read_list_():
+	f = open('lists.txt', 'r')
+	list_ = []
+	for line in f:
+		list_.append(line[:-1])
+	while list_[i] != '__postag__':
+		i += 1
+	return list_[:i], list_[i:]
 
-	N = len(list_[0]) + len(list_[1])
+def write_list_(list_):
+	f = open('lists.txt', 'w')
+	mark = ["", "__postag__\n"]
+	for j in range(len(list_)):
+		f.write(mark[j])
+		for i in list_[0]:
+			f.write(i + '\n')
 
+def extract_feat_from_dataframe(df, learn = True):
+	df = df.copy()
+	del df['c0']
+	if learn:
+		list_ = [[] for i in range(len(df.columns.values.tolist()))]
+		for j in range(len(df.columns.values.tolist())):
+			for i in df[df.columns.values[j]]:
+				if not i in list_[j]:
+					list_[j].append(i)
+		write_list_(list_)
+		N = len(list_[0]) + len(list_[1])
+	else:
+		list_ = read_list_()
 	array = None
 	for i in range(len(df)):
 		x = [0] * N
