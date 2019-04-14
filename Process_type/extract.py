@@ -52,16 +52,17 @@ def read_list_():
 	list_ = []
 	for line in f:
 		list_.append(line[:-1])
+	i = 0
 	while list_[i] != '__postag__':
 		i += 1
-	return list_[:i], list_[i:]
+	return list_[:i], list_[i + 1:]
 
 def write_list_(list_):
 	f = open('lists.txt', 'w')
 	mark = ["", "__postag__\n"]
 	for j in range(len(list_)):
 		f.write(mark[j])
-		for i in list_[0]:
+		for i in list_[j]:
 			f.write(i + '\n')
 
 def extract_feat_from_dataframe(df, learn = True):
@@ -74,15 +75,18 @@ def extract_feat_from_dataframe(df, learn = True):
 				if not i in list_[j]:
 					list_[j].append(i)
 		write_list_(list_)
-		N = len(list_[0]) + len(list_[1])
 	else:
 		list_ = read_list_()
+	N = 0
+	for j in range(len(list_)):
+		N += len(list_[j])
 	array = None
 	for i in range(len(df)):
 		x = [0] * N
 		sum_ = 0
 		for j in range(len(df.columns.values.tolist())):
-			x[list_[j].index(df[df.columns.values[j]][i]) + sum_] = 1
+			if df[df.columns.values[j]][i] in list_[j]:
+				x[list_[j].index(df[df.columns.values[j]][i]) + sum_] = 1
 			sum_ += len(list_[j])
 		if array is None:
 			array = np.array(x)
