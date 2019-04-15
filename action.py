@@ -1,8 +1,9 @@
-
+import numpy as np
 class tree:
-	def __init__(self, value):
+	def __init__(self, value, sentence = None):
 		self.value = value
 		self.kids = []
+		self.sentence = None
 
 	# The arguments of this function is a value of new vertices
 	# and type of relationship between parent and kid
@@ -19,6 +20,12 @@ def construct_tree(text):
 	from isanlp.processor_remote import ProcessorRemote
 	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
 	analysis_res = proc_syntax(text)
+	sentences = []
+	for i in analysis_res['sentences']:
+		sentence = ''
+		for j in range(i.begin, i.end):
+			sentence = sentence + analysis_res['tokens'][j].text + ' '
+		sentences.append(sentence)
 	vertices_list_list = []
 	for j in range(len(analysis_res['lemma'])):
 		vertices_list = []
@@ -36,17 +43,21 @@ def construct_tree(text):
 			if _.parent != -1:
 				list_[_.parent].add_child(list_[j], _.link_name)
 			else:
+				list_[j].sentence = sentences[i]
 				root_list.append(list_[j])
 	return root_list
 
 class action:
-	name_action = 'Action'
-	def __init__(self, verb, subject = [], object = [], time = [], place = [], purpose = [], way = []):
-		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
+	def __init__(self, verb, sentence = None, name = None):
+		# self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
+		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']
 		self.inform = dict()
 		for i in range(len(self.keys)):
 			self.inform[self.keys[i]] = []
 		self.inform['VERB'] = verb
+		self.name_action = name
+		self.action_sentence = sentence
+
 def action_verb(x):
 	def is_verb():
 		return x.value.postag == 'VERB'
@@ -61,28 +72,19 @@ def action_verb(x):
 	return is_verb() and is_indicative() and not is_modal()
 
 def process_type(vert, act):
+	not_inform = ['punct']
+	if vert[1] in not_inform:
+		return 0
 	subject_type = ['agent', 'nsubj', 'xsubj']
-	object_type = ['dobj', 'iobj', 'xcomp', 'obj']
-	time_type = ['tmod']
-	place_type = ['advcl']
-	purpose_type = ['advcl']
-	way_type = ['acomp']
+	object_type = ['dobj', 'iobj', 'obj']
 	array = [subject_type, 
-		object_type, 
-		time_type, 
-		place_type, 
-		purpose_type,
-		way_type]
-	answer = [False] * len(array)
+		object_type]
+	answer = [0] * (len(array) + 1)
 	for i in range(len(array)):
-		answer[i] = True if vert[1] in array[i] else False
-	def _(i):
-		ret = False
-		for j in range(len(answer)):
-			ret = ret or answer[j] if i != j else ret
-		return ret
-	for i in range(1, len(act.keys)):
-		act.inform[act.keys[i]].append(vert[0].value) if answer[i - 1] and not _(i - 1) else None
+		answer[i] = i + 1 if vert[1] in array[i] else 0
+	if np.array(answer).sum() == 0:
+		answer[-1] = len(array) + 1
+	act.inform[act.keys[np.array(answer).sum()]].append(vert[0].value)
 
 def get_inform_parent(parent, act):
 	return 0
@@ -90,7 +92,7 @@ def get_inform_parent(parent, act):
 
 def get_actions(root):
 	all_actions = []
-	
+	sentence = root.sentence
 	def research(parent):
 		list = []
 		for i in parent.kids:
@@ -100,7 +102,7 @@ def get_actions(root):
 	
 	def new_act(x, parent):
 		if action_verb(x):
-			act = action(verb = x.value)
+			act = action(verb = x.value, sentence = sentence, name = 'Action'+'{' + x.value.lemma +'}')
 			get_inform_parent(parent, act)
 			information = research(x)
 			for j in information:
