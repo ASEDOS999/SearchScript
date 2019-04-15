@@ -96,12 +96,12 @@ class action:
 		list_ = [main_word, full_inform, depend_dict]
 		return self.extract_data_from_dict(list_)
 
-def action_verb(x):
+def action_verb(x, parent = None, dependence = None):
 	def is_verb():
 		return x.value.postag == 'VERB'
 	
 	def is_modal():
-		list_modal = ['быть', 'являться', 'мочь', 'уметь']
+		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
 		return (x.value.lemma in list_modal)
 	
 	def is_indicative():
@@ -111,7 +111,15 @@ def action_verb(x):
 			sum_ = sum_ or i
 		return sum_
 	
-	return is_verb() and is_indicative() and not is_modal()
+	def adv_participle():
+		if x is None or parent is None or dependence is None:
+			return False
+		return (x.value.postag == 'VERB' and
+			parent.value.postag == 'VERB' and
+			dependence == 'advcl')
+	
+	return (((is_verb() and is_indicative()) or 
+		adv_participle()) and not is_modal())
 
 def ignore_word(vert):
 	def not_inform():
@@ -164,7 +172,7 @@ def get_actions(root):
 	sentence = root.sentence
 	
 	def new_act(x, parent, dependence):
-		if action_verb(x):
+		if action_verb(x, parent, dependence):
 			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = 'Action'+'{' + x.value.lemma +'}')
 			for i in x.kids:
 				process_type(i, act)
