@@ -67,6 +67,7 @@ class action:
 		self.sentence = sentence
 	
 	def phrase(self, list_index):
+		list_index.sort()
 		list_word = [self.sentence[i] for i in list_index]
 		return construct_sentence(list_word)
 	
@@ -84,7 +85,10 @@ class action:
 							else:
 								dict_[i].append(k[j])
 					else:
-						dict_[i] = self.inform[i]
+						if j == 1:
+							dict_[i] = self.phrase(self.inform[i][j])
+						else:
+							dict_[i] = self.inform[i][j]
 				ret_list.append(dict_)
 		return ret_list
 	
@@ -111,7 +115,7 @@ def action_verb(x):
 
 def ignore_word(vert):
 	def not_inform():
-		list_postag = ['PUNCT', 'CCONJ']
+		list_postag = ['PUNCT', 'CCONJ', 'SCONJ']
 		return vert[0].value.postag in list_postag
 	return not_inform() or action_verb(vert[0])
 
@@ -131,6 +135,9 @@ def extract_inform(vert, sentence):
 def process_type(vert, act):
 	if ignore_word(vert):
 		return 0
+	if vert[0].value.postag == 'PART':
+		act.inform['VERB'][1].append(vert[0].value.index)
+		return 0
 	subject_type = ['agent', 'nsubj', 'xsubj']
 	object_type = ['dobj', 'iobj', 'obj']
 	array = [subject_type, 
@@ -143,29 +150,25 @@ def process_type(vert, act):
 	act.inform[act.keys[np.array(answer).sum()]].append(extract_inform(vert, act.sentence))
 
 def get_inform_parent(parent, act):
-	return 0
+	if parent is None or act is None:
+		return 0
 
 def get_actions(root):
 	all_actions = []
 	sentence = root.sentence
-	def research(parent):
-		list = []
-		for i in parent.kids:
-			list.append(i)
-			new_act(i[0], parent)
-		return list
 	
 	def new_act(x, parent):
 		if action_verb(x):
-			act = action(verb = x.value, sentence = sentence, name = 'Action'+'{' + x.value.lemma +'}')
+			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = 'Action'+'{' + x.value.lemma +'}')
+			for i in x.kids:
+				process_type(i, act)
+				new_act(i[0], x)
 			get_inform_parent(parent, act)
-			information = research(x)
-			for j in information:
-				process_type(j, act)
 			if act is not None:
 				all_actions.append(act)
 		else:
-			research(x)
+			for i in x.kids:
+				new_act(i[0], x)
 	
 	new_act(root, None)
 	return all_actions
