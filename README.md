@@ -20,6 +20,12 @@ In current model we separate following information about action:
 * action object
 * other
 
+## Project's structure
+
+* [Demonstration](https://github.com/ASEDOS999/SearchScript/blob/master/Tests.ipynb) is a file with examples of project work
+* [Code](https://github.com/ASEDOS999/SearchScript/blob/master/action.py) is a main code of extracting action and information about it
+* [Experiments](https://github.com/ASEDOS999/SearchScript/tree/master/Process_type) is experiments that can improve our work
+
 ## How Action Is Described
 
 The action may be expressed by way of using following parts of speech (PoS):
@@ -46,7 +52,7 @@ The action may be expressed by way of using following parts of speech (PoS):
 3. Exclude all PoS not expressing action
 4. Extract all information from their environment
 
-### About syntectic tree
+### About syntactic tree
 
 The tree is constructed as a modifictaion of a tree built through methods of module `isanlp` (see [Github of isanlp](https://github.com/IINemo/isanlp)).
 
@@ -54,8 +60,32 @@ Root of this tree and all dependences between vertices mathe with the root kid i
 
 Also all vertices have an attribute sentence. The root has initial sentence in the attribute. There is None here for the rest vertices.
 
-## Project's structure
+### About PoS not expressing action
 
-* [Demonstration](https://github.com/ASEDOS999/SearchScript/blob/master/Tests.ipynb) is a file with examples of project work
-* [Code](https://github.com/ASEDOS999/SearchScript/blob/master/action.py) is a main code of extracting action and information about it
-* [Experiments](https://github.com/ASEDOS999/SearchScript/tree/master/Process_type) is experiments that can improve our work
+In current version we exclude verbs from constant list. In current version the list involves following lemmas: *быть*, *мочь*, *уметь*.
+
+### Information Extraction
+
+In current version we can take into consideration following cases:
+
+* simple cases
+* verbs without action - see previous point
+* conjucted verbs - in this case we get one subject to all verbs
+* verbs with partcicle - in this case we join particle to a verb
+
+## Output Format
+
+A function `get_actions` returns list of classes `action`. 
+
+Class `action` following attributes: 
+
+* `name_action`
+* `sentence`
+* `inform` is a dictionary
+* `keys` is a list of dictionary keys. In current version `self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']`.
+
+In the `inform['VERB']` there is tuple from three elements. The first element is object of class `word` that involves information about postag, morph, lemma and index in sentence for verb. The second is list of indexes in sentence for this verb and its particle. The third is always None and this element is existing for symmetry.
+
+In the other field of dictionary `inform` there is lists of similar tuple from three elements. The first element is object of class `word` that involves information about postag, morph, lemma and index in sentence for this word. The second is list of indexes in sentence for this word and depending on it words. The third is a word dependence on a verb.
+
+Through second element of tuple one can reconstruct readable form of phrase using method `get_inform` of class `action`.
