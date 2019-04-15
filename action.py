@@ -11,10 +11,11 @@ class tree:
 		self.kids.append((value, mytype))
 
 class word:
-	def __init__(self, lemma, postag, morph):
+	def __init__(self, lemma, postag, morph, index):
 		self.lemma = lemma
 		self.postag = postag
 		self.morph = morph
+		self.index = index
 
 def construct_tree(text):
 	from isanlp.processor_remote import ProcessorRemote
@@ -22,9 +23,9 @@ def construct_tree(text):
 	analysis_res = proc_syntax(text)
 	sentences = []
 	for i in analysis_res['sentences']:
-		sentence = ''
+		sentence = []
 		for j in range(i.begin, i.end):
-			sentence = sentence + analysis_res['tokens'][j].text + ' '
+			sentence.append(analysis_res['tokens'][j].text)
 		sentences.append(sentence)
 	vertices_list_list = []
 	for j in range(len(analysis_res['lemma'])):
@@ -32,7 +33,8 @@ def construct_tree(text):
 		for i in range(len(analysis_res['lemma'][j])):
 			vert = tree(word(analysis_res['lemma'][j][i],
 					analysis_res['postag'][j][i],
-					analysis_res['morph'][j][i]))
+					analysis_res['morph'][j][i],
+					i))
 			vertices_list.append(vert)
 		vertices_list_list.append(vertices_list)
 	root_list = []
@@ -67,13 +69,20 @@ def action_verb(x):
 		return (x.value.lemma in list_modal)
 	
 	def is_indicative():
-		return x.value.morph.__contains__('Mood') and x.value.morph['Mood'] == 'Ind'
+		ret, sum_ = [], False
+		ret.append(x.value.morph.__contains__('Mood') and x.value.morph['Mood'] == 'Ind')
+		for i in ret:
+			sum_ = sum_ or i
+		return sum_
 	
 	return is_verb() and is_indicative() and not is_modal()
 
+def not_inform(vert):
+	list_postag = ['PUNCT', 'CCONJ']
+	return vert[0].value.postag in list_postag
+
 def process_type(vert, act):
-	not_inform = ['punct']
-	if vert[1] in not_inform:
+	if not_inform(vert):
 		return 0
 	subject_type = ['agent', 'nsubj', 'xsubj']
 	object_type = ['dobj', 'iobj', 'obj']
