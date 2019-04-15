@@ -149,26 +149,32 @@ def process_type(vert, act):
 		answer[-1] = len(array) + 1
 	act.inform[act.keys[np.array(answer).sum()]].append(extract_inform(vert, act.sentence))
 
-def get_inform_parent(parent, act):
+def get_inform_parent(parent, dependence, act):
 	if parent is None or act is None:
 		return 0
+	if dependence == 'conj' and action_verb(parent):
+		if len(act.inform['SUBJECT']) == 0:
+			act_new = action(verb = (parent.value, [parent.value.index], None), sentence = act.sentence)
+			for i in parent.kids:
+				process_type(i, act_new)
+			act.inform['SUBJECT'] = act_new.inform['SUBJECT']
 
 def get_actions(root):
 	all_actions = []
 	sentence = root.sentence
 	
-	def new_act(x, parent):
+	def new_act(x, parent, dependence):
 		if action_verb(x):
 			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = 'Action'+'{' + x.value.lemma +'}')
 			for i in x.kids:
 				process_type(i, act)
-				new_act(i[0], x)
-			get_inform_parent(parent, act)
+				new_act(i[0], x, i[1])
+			get_inform_parent(parent, dependence, act)
 			if act is not None:
 				all_actions.append(act)
 		else:
 			for i in x.kids:
-				new_act(i[0], x)
+				new_act(i[0], x, i[1])
 	
-	new_act(root, None)
+	new_act(root, None, None)
 	return all_actions
