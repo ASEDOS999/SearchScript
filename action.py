@@ -188,24 +188,25 @@ def get_actions(root):
 	new_act(root, None, None)
 	return all_actions
 
+def process_path(dependence):
+	mytype = ''
+	for i in dependence:
+		mytype = mytype + i + '->'
+	return mytype
+
 def get_actions_tree(root):
 	action_list = get_actions(root)
 	def research(x, parent = None, dependence = None, cur_action = None):
-		if action_verb(x, parent, dependence):
+		if action_verb(x, parent, dependence[-1]):
 			act = [i for i in action_list if i.name_action == 'Action%d{%s}'%(x.value.index, x.value.lemma)][0]
 			vert = tree(act)
-			mytype = None
-			if not parent is None and cur_action.value.name_action == 'Action%d{%s}'%(parent.value.index, parent.value.lemma):
-				mytype = dependence
-			if dependence == 'ROOT':
-				mytype = 'ROOT'
-			if mytype is None:
-				mytype = 'non-det'
+			mytype = process_path(dependence)
 			cur_action.add_child(value = vert, mytype = mytype)
 			cur_action = vert
+			dependence = []
 		for i in x.kids:
-			research(i[0], x, i[1], cur_action)
+			research(i[0], x, dependence + [i[1]], cur_action)
 	action_root = tree(action(verb = None, name = 'ROOT'))
-	research(root, cur_action = action_root, dependence = 'ROOT')
+	research(root, cur_action = action_root, dependence = ['ROOT'])
 	action_root.sentence = root.sentence
 	return action_root
