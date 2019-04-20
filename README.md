@@ -56,7 +56,7 @@ The action may be expressed by way of using following parts of speech (PoS):
 
 The tree is constructed as a modifictaion of a tree built through methods of module `isanlp` (see [Github of isanlp](https://github.com/IINemo/isanlp)).
 
-Root of this tree and all dependences between vertices mathe with the root kid in `isanlp`-tree. Each vertice has two attribute: value that involves an information about postag, morph, lemma and index in sentence and list of kids and dependences.
+Root of this tree and all dependences between vertices match with the root kid in `isanlp`-tree. Each vertice has two attribute: value that involves an information about postag, morph, lemma and index in sentence and list of kids and dependences.
 
 Also all vertices have an attribute sentence. The root has initial sentence in the attribute. There is None here for the rest vertices.
 
@@ -73,19 +73,66 @@ In current version we can take into consideration following cases:
 * conjucted verbs - in this case we get one subject to all verbs
 * verbs with partcicle - in this case we join particle to a verb
 
+## Main functions
+
+There are all work functions in file *action.py*.
+
+Function `construct_tree`:
+
+* **Input:** text with sentences
+* **Output:** list of syntactic trees roots
+
+Function `get_actions`:
+
+* **Input:** root of syntactic tree
+* **Output:** list of objects of class `action`
+
+Function `get_actions_tree`:
+
+* **Input:** root of syntactic tree
+* **Output:** root of action tree
+
 ## Output Format
 
-A function `get_actions` returns list of classes `action`. 
+### Class `action`
 
-Class `action` following attributes: 
+Class `action` has following attributes: 
 
 * `name_action`
 * `sentence`
 * `inform` is a dictionary
 * `keys` is a list of dictionary keys. In current version `self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']`.
 
+The `sentence` is a list of tokens from initial sentence. You can construct usual sentence through function `construct_sentence`.
+
 In the `inform['VERB']` there is tuple from three elements. The first element is object of class `word` that involves information about postag, morph, lemma and index in sentence for verb. The second is list of indexes in sentence for this verb and its particle. The third is always None and this element is existing for symmetry.
 
-In the other field of dictionary `inform` there is lists of similar tuple from three elements. The first element is object of class `word` that involves information about postag, morph, lemma and index in sentence for this word. The second is list of indexes in sentence for this word and depending on it words. The third is a word dependence on a verb.
+In the other field of dictionary `inform` there is lists of similar tuple from three elements. The first element is object of class `word` that involves information about postag, morph, lemma and index in sentence for this word. The second is list of indexes in sentence for this word and depending on it words. The third is a word dependence on a verb. Through second element of tuple one can reconstruct readable form of phrase using method `get_inform` of class `action`.
 
-Through second element of tuple one can reconstruct readable form of phrase using method `get_inform` of class `action`.
+Method `get_inform` has three arguments `main_word, full_inform, depend_dict` and they are default `False`. The n-st argument corresponds to the n-th element of tuples in fields of dictionary `inform`. The function returns a list. Elements of this list is lists for that corresponding arguments was `True`.
+
+### Action Tree
+
+The root of action tree is object from class `tree`.
+
+This class has attributes `value` and list `kids`. In action tree `value` is an object from class `action` and the list `kids` is the list of tuples. The first element of a tuple is object `action` that is a kid of current vertice, the second is type of dependece between the current vertice and its kid.
+
+## Example
+
+```python
+import action
+
+text = 'Мама мыла раму. И Федя мыл раму.'
+
+root_list = action.construct_tree(text)
+
+action_list = []
+for root in root_list:
+    action_list += get_actions(root)
+
+action_tree = []
+for root in root_list:
+    action_tree.append(get_actions_tree(root))
+```
+
+You can find more examples in [Demonstration](https://github.com/ASEDOS999/SearchScript/blob/master/Tests.ipynb).
