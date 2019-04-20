@@ -96,6 +96,9 @@ class action:
 		list_ = [main_word, full_inform, depend_dict]
 		return self.extract_data_from_dict(list_)
 
+	def add_marks(self, lemma, postag, depend):
+		self.marks.append((lemma, postag, depend))
+
 def action_verb(x, parent = None, dependence = None):
 	def is_verb():
 		return x.value.postag == 'VERB'
@@ -188,19 +191,33 @@ def get_actions(root):
 	new_act(root, None, None)
 	return all_actions
 
-def process_path(dependence):
+def process_path(dependence, marks):
 	mytype = ''
-	for i in dependence:
-		mytype = mytype + i + '->'
-	return mytype
+	if len(dependence) == 1:
+		mytype = dependence[0]
+		if mytype == 'ROOT':
+			return mytype
+		if len(marks) >= 1:
+			add = marks[0][0] if len(marks) == 1 else 'nondet_marks'
+		else:
+			add = 'without_marks'
+		mytype = mytype + '{' + add + '}'
+		return mytype
+	return 'nondet'
 
 def get_actions_tree(root):
 	action_list = get_actions(root)
+	list_depend = ['mark', 'cc']
+	list_postag = ['CCONJ', 'SCONJ']
 	def research(x, parent = None, dependence = None, cur_action = None):
 		if action_verb(x, parent, dependence[-1]):
 			act = [i for i in action_list if i.name_action == 'Action%d{%s}'%(x.value.index, x.value.lemma)][0]
+			marks = []
+			for i in x.kids:
+				if (i[1] in list_depend) or (i[0].value.postag in list_postag):
+					marks.append((i[0].value.lemma, i[0].value.postag, i[1]))
 			vert = tree(act)
-			mytype = process_path(dependence)
+			mytype = process_path(dependence, marks)
 			cur_action.add_child(value = vert, mytype = mytype)
 			cur_action = vert
 			dependence = []
