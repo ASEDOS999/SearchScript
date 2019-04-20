@@ -1,4 +1,5 @@
 import numpy as np
+
 class tree:
 	def __init__(self, value, sentence = None):
 		self.value = value
@@ -56,7 +57,7 @@ def construct_sentence(list_word):
 	return sentence
 
 class action:
-	def __init__(self, verb, sentence = None, name = None):
+	def __init__(self, verb, sentence = None, name = None, type_action = None):
 		# self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
 		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']
 		self.inform = dict()
@@ -65,6 +66,7 @@ class action:
 		self.inform['VERB'] = verb
 		self.name_action = name
 		self.sentence = sentence
+		self.type_action = type_action
 	
 	def phrase(self, list_index):
 		list_index.sort()
@@ -96,39 +98,38 @@ class action:
 		list_ = [main_word, full_inform, depend_dict]
 		return self.extract_data_from_dict(list_)
 
-	def add_marks(self, lemma, postag, depend):
-		self.marks.append((lemma, postag, depend))
-
-def action_verb(x, parent = None, dependence = None):
-	def is_verb():
-		return x.value.postag == 'VERB'
+class action_verb():
+	def __init__(self, x, parent = None, dependence = None):
+		self.x, self.parent, self.dependence = x, parent, dependence
 	
-	def is_modal():
+	def is_verb(self):
+		return self.x.value.postag == 'VERB'
+	
+	def is_modal(self):
 		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
-		return (x.value.lemma in list_modal)
+		return (self.x.value.lemma in list_modal)
 	
-	def is_indicative():
+	def is_indicative(self):
 		ret, sum_ = [], False
-		ret.append(x.value.morph.__contains__('Mood') and x.value.morph['Mood'] == 'Ind')
+		ret.append(self.x.value.morph.__contains__('Mood') and self.x.value.morph['Mood'] == 'Ind')
 		for i in ret:
 			sum_ = sum_ or i
 		return sum_
 	
-	def adv_participle():
-		if x is None or parent is None or dependence is None:
-			return False
-		return (x.value.postag == 'VERB' and
-			parent.value.postag == 'VERB' and
-			dependence == 'advcl')
+	def adv_participle(self):
+		return (self.x.value.postag == 'VERB' and
+			self.x.value.morph.__contains__('VerbForm') and
+			self.x.value.morph['VerbForm'] == 'Conv')
 	
-	return (((is_verb() and is_indicative()) or 
-		adv_participle()) and not is_modal())
+	def test(self):
+		return (((self.is_verb() and self.is_indicative()) or 
+			self.adv_participle()) and not self.is_modal())
 
 def ignore_word(vert):
 	def not_inform():
 		list_postag = ['PUNCT', 'CCONJ', 'SCONJ']
 		return vert[0].value.postag in list_postag
-	return not_inform() or action_verb(vert[0])
+	return not_inform() or action_verb(vert[0]).test()
 
 def extract_inform(vert, sentence):
 	main_word, depend = vert[0].value, vert[1]
@@ -163,7 +164,7 @@ def process_type(vert, act):
 def get_inform_parent(parent, dependence, act):
 	if parent is None or act is None:
 		return 0
-	if dependence == 'conj' and action_verb(parent):
+	if (dependence == 'conj' or action_verb(act.inform['VERB'][0], parent, dependence).adv_participle) and action_verb(parent).test():
 		if len(act.inform['SUBJECT']) == 0:
 			act_new = action(verb = (parent.value, [parent.value.index], None), sentence = act.sentence)
 			for i in parent.kids:
@@ -175,7 +176,7 @@ def get_actions(root):
 	sentence = root.sentence
 	
 	def new_act(x, parent, dependence):
-		if action_verb(x, parent, dependence):
+		if action_verb(x, parent, dependence).test():
 			name = 'Action%d{%s}'%(x.value.index, x.value.lemma)
 			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name)
 			for i in x.kids:
@@ -210,7 +211,7 @@ def get_actions_tree(root):
 	list_depend = ['mark', 'cc']
 	list_postag = ['CCONJ', 'SCONJ']
 	def research(x, parent = None, dependence = None, cur_action = None):
-		if action_verb(x, parent, dependence[-1]):
+		if action_verb(x, parent, dependence[-1]).test():
 			act = [i for i in action_list if i.name_action == 'Action%d{%s}'%(x.value.index, x.value.lemma)][0]
 			marks = []
 			for i in x.kids:
