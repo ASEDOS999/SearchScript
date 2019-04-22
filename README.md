@@ -72,6 +72,8 @@ In current version we can take into consideration following cases:
 * verbs without action - see previous point
 * conjucted verbs - in this case we get one subject to all verbs
 * verbs with partcicle - in this case we join particle to a verb
+* adverbal participle - the subject from the main action
+* participle - the task to find participle often executes unsuccessfully.
 
 ## Main functions
 
