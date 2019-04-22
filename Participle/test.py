@@ -25,18 +25,18 @@ class participle_process:
 	
 	def participle_list_feat(self):
 		x, depend, postag = self.x, self.depend, self.postag
-		parent_postag = 'Non' if parent_postag is None else parent_postag
+		parent_postag = 'Non' if self.postag is None else self.postag
 		if x.value.morph.__contains__('VerbForm') and x.value.morph['VerbForm'] == 'Part':
 			new_list = x.kids.copy()
-			return (cs(root.sentence),
-				x.value.lemma,
-				root.sentence[x.value.index],
-				new_list,
+			return (new_list,
 				parent_postag)
-
+		else:
+			return None
+	
 	def get_participle_data(self):
-		x, depend, postag = self.x, self.depend, self.postag
 		tuple_ = self.participle_list_feat()
+		if tuple_ is None:
+			return None
 		def sub(name, list_):
 			if name in list_:
 				return 1
@@ -47,22 +47,23 @@ class participle_process:
 		keys_2 = ['ADJ', 'SCONJ', 'AUX', 'ADP', 'DET', 'PUNCT', 'NOUN', 'CCONJ', 'ADV', 'PROPN', 'VERB', 'PRON', 'PART', 'NUM']
 		keys_3 = ['ParentPROPN', 'ParentNUM', 'ParentNOUN', 'ParentVERB', 'ParentNon', 'ParentAUX', 'ParentPUNCT', 'ParentPRON']
 
-		dict_['Sentence'], dict_['Lemma'], dict_['Token'] = [], [], []
 		for i in (keys_1 + keys_2 + keys_3):
 			dict_[i] = []
 		i = tuple_
-		dict_['Sentence'].append(i[0])
-		dict_['Lemma'].append(i[1])
-		dict_['Token'].append(i[2])
 		for j in keys_1:
-			dict_[j].append(sub(j, [k[1] for k in i[3]]))
+			dict_[j].append(sub(j, [k[1] for k in i[0]]))
 		for j in keys_2:
-			dict_[j].append(sub(j, [k[0].value.postag for k in i[3]]))
+			dict_[j].append(sub(j, [k[0].value.postag for k in i[0]]))
 		for j in keys_3:
-			dict_[j].append(sub('Parent' + i[4], [j]))
+			dict_[j].append(sub('Parent' + i[1], [j]))
 		return pd.DataFrame(dict_)
 
 	def classificate(self):
-		with open('../participle_classifier.pkl', 'rb') as fid:
+		df = self.get_participle_data()
+		if df is None:
+			return False
+		data = df.as_matrix()
+		import _pickle as cPickle
+		with open('Participle/participle_classifier.pkl', 'rb') as fid:
 			clf = cPickle.load(fid)
-		return 1 == clf.predict(self.get_participle_data())[0]
+		return 1 == clf.predict(data)[0]

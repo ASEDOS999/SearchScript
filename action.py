@@ -102,7 +102,7 @@ class action:
 		return self.extract_data_from_dict(list_)
 
 class action_verb():
-	def __init__(self, x, parent = None, dependence = None, with_participle = None):
+	def __init__(self, x, parent = None, dependence = None, with_participle = True):
 		self.x, self.parent, self.dependence = x, parent, dependence
 		self.with_participle = with_participle
 	
@@ -126,14 +126,16 @@ class action_verb():
 			self.x.value.morph['VerbForm'] == 'Conv')
 	
 	def is_participle(self):
-		return PP(self.x, self.dependence, self.parent.value.postag).classificate()
+		parent_postag = None if self.parent is None else self.parent.value.postag
+		depend  = None if self.dependence is None else self.dependence
+		return PP(self.x, depend, parent_postag).classificate()
 		# return (self.x.value.morph.__contains__('VerbForm') and
 		#	self.x.value.morph['VerbForm'] == 'Part')
 	
 	def test(self):
 		return (((self.is_verb() and self.is_indicative()) or 
 			self.adv_participle() or
-			(self.with_participle and is_participle)) and 
+			(self.with_participle and self.is_participle())) and 
 			not self.is_modal())
 
 def ignore_word(vert):
