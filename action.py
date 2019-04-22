@@ -140,26 +140,26 @@ def ignore_word(vert, parent = None, depend = None):
 	def not_inform():
 		list_postag = ['PUNCT', 'CCONJ', 'SCONJ']
 		return vert[0].value.postag in list_postag
-	return not_inform() or action_verb(vert[0], parent, depend).test()
+	return not_inform() or action_verb(vert[0], parent, vert[1]).test()
 
-def extract_inform(vert, parent, depend, sentence):
+def extract_inform(vert, parent, sentence):
 	list_index = []
 	def search(root, my_depend):
 		for i in root.kids:
 			j = i[0]
-			if not ignore_word(vert, j, depend):
+			if not ignore_word(i, root):
 				if i[1] != 'punct':
 					list_index.append(j.value.index)
 				search(j, i[1])
-	if not ignore_word(vert, parent, depend):
+	if not ignore_word(vert, parent):
 		if vert[1] != 'punct':
 			list_index.append(vert[0].value.index)
 		search(vert[0], vert[1])
 	list_index.sort()
-	return (vert[0].value, list_index, depend)
+	return (vert[0].value, list_index, vert[1])
 
-def process_type(vert, parent = None, depend = None, act = None):
-	if ignore_word(vert):
+def process_type(vert, parent = None, act = None):
+	if ignore_word(vert, parent):
 		return 0
 	if vert[0].value.postag == 'PART':
 		act.inform['VERB'][1].append(vert[0].value.index)
@@ -173,7 +173,7 @@ def process_type(vert, parent = None, depend = None, act = None):
 		answer[i] = i + 1 if vert[1] in array[i] else 0
 	if np.array(answer).sum() == 0:
 		answer[-1] = len(array) + 1
-	act.inform[act.keys[np.array(answer).sum()]].append(extract_inform(vert, parent, depend, act.sentence))
+	act.inform[act.keys[np.array(answer).sum()]].append(extract_inform(vert, parent, act.sentence))
 
 def get_inform_parent(parent, dependence, act, x = None):
 	if parent is None or act is None or x is None:
@@ -182,10 +182,10 @@ def get_inform_parent(parent, dependence, act, x = None):
 		if len(act.inform['SUBJECT']) == 0:
 			act_new = action(verb = (parent.value, [parent.value.index], None), sentence = act.sentence)
 			for i in parent.kids:
-				process_type(i, parent, i[1], act_new)
+				process_type(i, parent, act_new)
 			act.inform['SUBJECT'] = act_new.inform['SUBJECT']
 	if action_verb(x, parent, dependence).is_participle() and parent.value.postag in ['NOUN', 'PRON']:
-			act.inform['SUBJECT'].append(extract_inform((parent, None), None, None, act.sentence))
+			act.inform['SUBJECT'].append(extract_inform((parent, None), None, act.sentence))
 
 def get_actions(root):
 	all_actions = []
@@ -196,7 +196,7 @@ def get_actions(root):
 			name = 'Action%d{%s}'%(x.value.index, x.value.lemma)
 			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name)
 			for i in x.kids:
-				process_type(i, x, i[1], act)
+				process_type(i, x, act)
 				new_act(i[0], x, i[1])
 			get_inform_parent(parent, dependence, act, x)
 			if act is not None:
