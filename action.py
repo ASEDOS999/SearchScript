@@ -98,12 +98,21 @@ class action:
 		list_ = [main_word, full_inform, depend_dict]
 		return self.extract_data_from_dict(list_)
 
+<<<<<<< HEAD
 class action_verb():
 	def __init__(self, x, parent = None, dependence = None):
 		self.x, self.parent, self.dependence = x, parent, dependence
 	
 	def is_verb(self):
 		return self.x.value.postag == 'VERB'
+=======
+	def add_marks(self, lemma, postag, depend):
+		self.marks.append((lemma, postag, depend))
+
+def action_verb(x, parent = None, dependence = None):
+	def is_verb():
+		return x.value.postag == 'VERB'
+>>>>>>> Participle
 	
 	def is_modal(self):
 		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
