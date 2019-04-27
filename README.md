@@ -103,9 +103,14 @@ Class `action` has following attributes:
 * `name_action`
 * `sentence`
 * `inform` is a dictionary
-* `keys` is a list of dictionary keys. In current version `self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']`.
+* `keys` is a list of dictionary `inform` keys. In current version `self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']`.
+* `type_action` is string
+
+The `name_action` is string being the action name. The action name is created by following way. Let *VERB_LEMMA* be lemma of word expressing action and *ind* is this word index in sentence. Then name for this action is following: Action*ind*{*VERB_LEMMA*}. For example, we have sentence *Мама мыла раму.* Here an action is expressed by verb *мыла* with lemma *мыть* and index *1*. Then action name for it is `Action1{мыть}`.
 
 The `sentence` is a list of tokens from initial sentence. You can construct usual sentence through function `construct_sentence`.
+
+The `type_action` involves information about action. Now we save in this attribute information about verb form and verb mood. In current version `type_action` can take following values: `'Indicative'`, `'Imperative'`, `'Adv_Participle'`, `'Participle'`.
 
 In the `inform['VERB']` there is tuple from three elements. The first element is object of class `word` that involves information about postag, morph, lemma and index in sentence for verb. The second is list of indexes in sentence for this verb and its particle. The third is always None and this element is existing for symmetry.
 
