@@ -114,13 +114,12 @@ class action_verb():
 		return (self.x.value.lemma in list_modal)
 	
 	def is_indicative(self):
-		ret, sum_ = [], False
-		ret.append(self.x.value.morph.__contains__('Mood') and self.x.value.morph['Mood'] == 'Ind')
-		for i in ret:
-			sum_ = sum_ or i
-		return sum_
+		return (self.x.value.morph.__contains__('Mood') and self.x.value.morph['Mood'] == 'Ind')
 	
-	def adv_participle(self):
+	def is_imperative(self):
+		return (self.x.value.morph.__contains__('Mood') and  self.x.value.morph['Mood'] == 'Imp')
+	
+	def is_advparticiple(self):
 		return (self.x.value.postag == 'VERB' and
 			self.x.value.morph.__contains__('VerbForm') and
 			self.x.value.morph['VerbForm'] == 'Conv')
@@ -131,10 +130,17 @@ class action_verb():
 		return PP(self.x, depend, parent_postag).classificate()
 	
 	def test(self):
-		return (((self.is_verb() and self.is_indicative()) or 
-			self.adv_participle() or
-			(self.with_participle and self.is_participle())) and 
-			not self.is_modal())
+		if not self.is_verb() or self.is_modal():
+			return False
+		if self.is_indicative():
+			return 'Indicative'
+		if self.is_imperative():
+			return 'Imperative'
+		if self.is_advparticiple():
+			return 'Adv_Participle'
+		if self.with_participle and self.is_participle():
+			return 'Participle'
+		return False
 
 def ignore_word(vert, parent = None, depend = None):
 	def not_inform():
@@ -178,7 +184,7 @@ def process_type(vert, parent = None, act = None):
 def get_inform_parent(parent, dependence, act, x = None):
 	if parent is None or act is None or x is None:
 		return 0
-	if (dependence == 'conj' or action_verb(x, parent, dependence).adv_participle()) and action_verb(parent).test():
+	if (dependence == 'conj' or action_verb(x, parent, dependence).is_advparticiple()) and action_verb(parent).test():
 		if len(act.inform['SUBJECT']) == 0:
 			act_new = action(verb = (parent.value, [parent.value.index], None), sentence = act.sentence)
 			for i in parent.kids:
@@ -192,9 +198,10 @@ def get_actions(root):
 	sentence = root.sentence
 	
 	def new_act(x, parent, dependence):
-		if action_verb(x, parent, dependence).test():
+		type_ = action_verb(x, parent, dependence).test()
+		if type_:
 			name = 'Action%d{%s}'%(x.value.index, x.value.lemma)
-			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name)
+			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name, type_action = type_)
 			for i in x.kids:
 				process_type(i, x, act)
 				new_act(i[0], x, i[1])
