@@ -1,12 +1,14 @@
 import action
 # Full Action Tree
 class FAT:
-	def __init__(self, value = None, old_vert = None):
+	def __init__(self, value = None, old_vert = None, sentence = None):
 		self.value = value
+		self.sentence = sentence
 		self.kids = []
 		if not old_vert is None:
-			self.value = old_vert = value
-			self.kids = kids
+			self.value = old_vert.value
+			self.kids = old_vert.kids
+			self.sentence = old_vert.sentence
 		self.out_kids = []
 		self.in_kids = []
 
@@ -20,7 +22,7 @@ class graph_construct:
 	def __init__(self, text):
 		self.text = text
 		self.result = []
-		self.main_tree = []
+		self.main_tree = None
 
 	def get_list_of_tree(self):
 		text = self.text
@@ -62,7 +64,7 @@ class graph_construct:
 		cur_vert = None
 		ret = None
 		for i in list_tree:
-			new_vert = FAT(vert = i)
+			new_vert = FAT(old_vert = i)
 			if not cur_vert is None:
 				cur_vert.add_in_child(new_vert)
 			else:
@@ -73,7 +75,7 @@ class graph_construct:
 	def transform_treelist_to_tree(self):
 		cur_vert = None
 		ret = None
-		for i in results:
+		for i in self.results:
 			j = self.process_paragraph(i)
 			if not j is None:
 				if not cur_vert is None:
@@ -81,7 +83,7 @@ class graph_construct:
 				else:
 					ret = j
 				cur_vert = j
-		self.main_tree = j
+		self.main_tree = ret
 
 	def construct(self):
 		self.get_list_of_tree()
@@ -91,5 +93,3 @@ class graph_construct:
 		if self.main_tree is None:
 			self.construct()
 		return self.main_tree
-
-
