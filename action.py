@@ -22,9 +22,31 @@ class word:
 		self.index = index
 
 def construct_tree(text):
+#	from isanlp.processor_remote import ProcessorRemote
+#	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
+#	analysis_res = proc_syntax(text)
+	from isanlp import PipelineCommon
 	from isanlp.processor_remote import ProcessorRemote
-	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
-	analysis_res = proc_syntax(text)
+	from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
+	
+	HOST = 'localhost'
+	proc_morph = ProcessorRemote(HOST, 3333, 'default')
+	proc_syntax = ProcessorRemote(HOST, 3334, '0')
+	
+	syntax_ppl = PipelineCommon([(proc_morph,
+	['text'],
+	{'tokens' : 'tokens',
+	'sentences' : 'sentences',
+	'postag' : 'postag',
+	'lemma' : 'lemma'}),
+	(proc_syntax,
+	['tokens','sentences'],
+	{'syntax_dep_tree' : 'syntax_dep_tree'}),
+	(ConverterMystemToUd(),
+	['postag'],
+	{'postag' : 'postag', 'morph' : 'morph'})
+	])
+	analysis_res = syntax_ppl(text)
 	sentences = []
 	for i in analysis_res['sentences']:
 		sentence = []
@@ -122,12 +144,12 @@ class action_verb():
 	def is_advparticiple(self):
 		return (self.x.value.postag == 'VERB' and
 			self.x.value.morph.__contains__('VerbForm') and
-			self.x.value.morph['VerbForm'] == 'Conv')
+			self.x.value.morph['VerbForm'] == 'Ger')
 	
 	def is_participle(self):
-		parent_postag = None if self.parent is None else self.parent.value.postag
-		depend  = None if self.dependence is None else self.dependence
-		return PP(self.x, depend, parent_postag).classificate()
+		return (self.x.value.postag == 'VERB' and
+			self.x.value.morph.__contains__('VerbForm') and
+			self.x.value.morph['VerbForm'] == 'Part')
 	
 	def test(self):
 		if not self.is_verb() or self.is_modal():
@@ -140,7 +162,7 @@ class action_verb():
 			return 'Adv_Participle'
 		if self.with_participle and self.is_participle():
 			return 'Participle'
-		return False
+		return 'Verb'
 
 def ignore_word(vert, parent = None, depend = None):
 	def not_inform():
