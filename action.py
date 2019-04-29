@@ -131,6 +131,9 @@ class action_verb():
 	def is_verb(self):
 		return self.x.value.postag == 'VERB'
 	
+	def is_infin(self):
+		return self.x.value.morph.__contains__('VerbForm') and self.x.value.morph['VerbForm'] == 'Inf'
+	
 	def is_modal(self):
 		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
 		return (self.x.value.lemma in list_modal)
@@ -152,7 +155,7 @@ class action_verb():
 			self.x.value.morph['VerbForm'] == 'Part')
 	
 	def test(self):
-		if not self.is_verb() or self.is_modal():
+		if not self.is_verb() or self.is_modal() or self.is_infin():
 			return False
 		if self.is_indicative():
 			return 'Indicative'
