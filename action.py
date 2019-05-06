@@ -33,19 +33,17 @@ def construct_tree(text):
 	proc_morph = ProcessorRemote(HOST, 3333, 'default')
 	proc_syntax = ProcessorRemote(HOST, 3334, '0')
 	
-	syntax_ppl = PipelineCommon([(proc_morph,
-	['text'],
-	{'tokens' : 'tokens',
-	'sentences' : 'sentences',
-	'postag' : 'postag',
-	'lemma' : 'lemma'}),
-	(proc_syntax,
-	['tokens','sentences'],
-	{'syntax_dep_tree' : 'syntax_dep_tree'}),
-	(ConverterMystemToUd(),
-	['postag'],
-	{'postag' : 'postag', 'morph' : 'morph'})
-	])
+	syntax_ppl = PipelineCommon([
+		(proc_morph,
+			['text'],
+			{'tokens' : 'tokens', 'sentences' : 'sentences', 'postag' : 'postag', 'lemma' : 'lemma'}),
+		(proc_syntax,
+			['tokens','sentences'],
+			{'syntax_dep_tree' : 'syntax_dep_tree'}),
+		(ConverterMystemToUd(),
+			['postag'],
+			{'postag' : 'postag', 'morph' : 'morph'})
+		])
 	analysis_res = syntax_ppl(text)
 	sentences = []
 	for i in analysis_res['sentences']:
@@ -139,10 +137,13 @@ class action_verb():
 		return (self.x.value.lemma in list_modal)
 	
 	def is_indicative(self):
-		return (self.x.value.morph.__contains__('Mood') and self.x.value.morph['Mood'] == 'Ind')
+		return (self.x.value.morph.__contains__('Tense') and 
+			(self.x.value.morph.__contains__('VerbForm') and self.x.value.morph['VerbForm'] == 'Fin'))
 	
 	def is_imperative(self):
-		return (self.x.value.morph.__contains__('Mood') and  self.x.value.morph['Mood'] == 'Imp')
+		return (not self.x.value.morph.__contains__('Tense') and 
+			(self.x.value.morph.__contains__('VerbForm') and self.x.value.morph['VerbForm'] == 'Fin') and
+			(self.x.value.morph.__contains__('Person') and self.x.value.morph['Person'] == '2'))
 	
 	def is_advparticiple(self):
 		return (self.x.value.postag == 'VERB' and
