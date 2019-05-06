@@ -36,7 +36,7 @@ class graph_construct:
 		results = []
 		for i in range(len(list_n) - 1):
 			root_list = []
-			if list_n[i+1]-list_n[i] > 1000:
+			if list_n[i+1] - list_n[i] > 1000:
 				cur_text = text[list_n[i] : list_n[i + 1]]
 				list_ = []
 				N = 0
@@ -93,3 +93,24 @@ class graph_construct:
 		if self.main_tree is None:
 			self.construct()
 		return self.main_tree
+
+
+def DFS(graph):
+	list_ = []
+	for i in graph.kids:
+		if i[0].value.type_action == 'Imperative':
+			list_.append(i[0].value)
+			print(i[0].value.name_action)
+		list_ += DFS(i[0])
+	if type(graph) == FAT:
+		for i in graph.in_kids:
+			if i[0].value.type_action == 'Imperative':
+				list_.append(i[0].value)
+				print(i[0].value.name_action)
+			list_ += DFS(i[0])
+		for i in graph.out_kids:
+			if i[0].value.type_action == 'Imperative':
+				list_.append(i[0].value)
+				print(i[0].value.name_action)
+			list_ += DFS(i[0])
+	return list_
