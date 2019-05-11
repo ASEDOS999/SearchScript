@@ -1,7 +1,4 @@
 import numpy as np
-import sys
-sys.path.append('Participle')
-from test import participle_process as PP
 
 class tree:
 	def __init__(self, value, sentence = None):
@@ -131,10 +128,13 @@ class action_verb():
 	
 	def is_infin(self):
 		return self.x.value.morph.__contains__('VerbForm') and self.x.value.morph['VerbForm'] == 'Inf'
+
+	def process_infin(self):
+		return self.parent is None or (not self.parent.value.postag == 'VERB' and self.dependence == 'xcomp')
 	
-	def is_modal(self):
-		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
-		return (self.x.value.lemma in list_modal)
+#	def is_modal(self):
+#		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
+#		return (self.x.value.lemma in list_modal)
 	
 	def is_indicative(self):
 		return (self.x.value.morph.__contains__('Tense') and 
@@ -156,8 +156,10 @@ class action_verb():
 			self.x.value.morph['VerbForm'] == 'Part')
 	
 	def test(self):
-		if not self.is_verb() or self.is_modal() or self.is_infin():
+		if not self.is_verb():
 			return False
+		if self.is_infin() and self.process_infin():
+				return 'Modal'
 		if self.is_indicative():
 			return 'Indicative'
 		if self.is_imperative():
