@@ -130,11 +130,12 @@ class action_verb():
 		return self.x.value.morph.__contains__('VerbForm') and self.x.value.morph['VerbForm'] == 'Inf'
 
 	def process_infin(self):
-		return self.parent is None or (not self.parent.value.postag == 'VERB' and self.dependence == 'xcomp')
-	
-#	def is_modal(self):
-#		list_modal = ['быть', 'мочь', 'уметь', 'умея', 'умев']
-#		return (self.x.value.lemma in list_modal)
+		#print(self.x.value.lemma, self.parent)
+		#if not self.parent is None:
+		#	print(self.parent.value.lemma, self.parent.value.postag)
+		mark = (not self.parent is None and self.parent.value.postag != 'VERB') and self.dependence == 'xcomp'
+		#print(mark)
+		return mark
 	
 	def is_indicative(self):
 		return (self.x.value.morph.__contains__('Tense') and 
@@ -158,8 +159,11 @@ class action_verb():
 	def test(self):
 		if not self.is_verb():
 			return False
-		if self.is_infin() and self.process_infin():
+		if self.is_infin():
+			if self.process_infin():
 				return 'Modal'
+			else:
+				return False
 		if self.is_indicative():
 			return 'Indicative'
 		if self.is_imperative():

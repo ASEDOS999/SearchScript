@@ -95,21 +95,42 @@ class graph_construct:
 		return self.main_tree
 
 
-def DFS(graph):
+from action import construct_sentence as CS
+
+def start_proc(vertice):
+	act = vertice[0].value
+	if act.name_action == 'ROOT':
+		return True
+	if CS(act.sentence)[-2] != '.':
+		return True
+
+def instructions(vertice):
+	act = vertice[0].value
+	if start_proc(vertice):
+		return False
+	mark = act.type_action in ['Imperative', 'Modal']
+	if len(act.inform['SUBJECT']) == 0:
+		morph = act.inform['VERB'][0].morph
+		mark = mark or (morph.__contains__('Person') and morph['Person'] == '3' and 
+			morph.__contains__('Number') and morph['Number'] == 'Sing')
+	mark = mark or len(act.inform['SUBJECT']) == 1 and act.inform['SUBJECT'][0][0].lemma in ['Вы', 'вы']
+	return mark
+
+def DFS(graph, test = instructions):
 	list_ = []
 	for i in graph.kids:
-		if i[0].value.type_action == 'Imperative':
+		if test(i):
 			list_.append(i[0].value)
 			print(i[0].value.name_action)
 		list_ += DFS(i[0])
 	if type(graph) == FAT:
 		for i in graph.in_kids:
-			if i[0].value.type_action == 'Imperative':
+			if test(i):
 				list_.append(i[0].value)
 				print(i[0].value.name_action)
 			list_ += DFS(i[0])
 		for i in graph.out_kids:
-			if i[0].value.type_action == 'Imperative':
+			if test(i):
 				list_.append(i[0].value)
 				print(i[0].value.name_action)
 			list_ += DFS(i[0])
