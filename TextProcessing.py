@@ -135,22 +135,25 @@ def instructions(vertice):
 				return True
 	return False
 
-def DFS(graph, test = instructions):
+def DFS(graph, test = instructions, print_name = False):
 	list_ = []
 	for i in graph.kids:
 		if test(i):
 			list_.append(i[0].value)
-			print(i[0].value.name_action)
+			if print_name:
+				print(i[0].value.name_action)
 		list_ += DFS(i[0])
 	if type(graph) == FAT:
 		for i in graph.in_kids:
 			if test(i):
 				list_.append(i[0].value)
+			if print_name:
 				print(i[0].value.name_action)
 			list_ += DFS(i[0])
 		for i in graph.out_kids:
 			if test(i):
 				list_.append(i[0].value)
-				print(i[0].value.name_action)
+				if print_name:
+					print(i[0].value.name_action)
 			list_ += DFS(i[0])
 	return list_
