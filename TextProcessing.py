@@ -119,19 +119,18 @@ def instructions(vertice):
 		return False
 	if act.type_action in ['Imperative', 'Modal']:
 		return True
-	if len(act.inform['SUBJECT']) == 0:
-		morph = act.inform['VERB'][0].morph
-		if ((morph.__contains__('Person') and morph['Person'] == '3' and 
-			morph.__contains__('Number') and morph['Number'] == 'Sing')):
-				return lemma != 'быть' and there_is_inf(act)
-	if len(act.inform['SUBJECT']) == 1:
-		morph = act.inform['VERB'][0].morph
-		if morph.__contains__('Person') and morph['Person'] == '2':
-			lemma = act.inform['VERB'][0].lemma
-			if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
-				return lemma != 'быть' and there_is_inf(act)
-			if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
-				return True
+	lemma = act.inform['VERB'][0].lemma
+	morph = act.inform['VERB'][0].morph
+	if (len(act.inform['SUBJECT']) == 0 and
+		morph.__contains__('Person') and morph['Person'] == '3' and 
+		morph.__contains__('Number') and morph['Number'] == 'Sing'):
+			return lemma != 'быть' and there_is_inf(act)
+	if (len(act.inform['SUBJECT']) == 1 and 
+		morph.__contains__('Person') and morph['Person'] == '2'):
+		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
+			return lemma != 'быть' and there_is_inf(act)
+		if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+			return True
 	return False
 
 def DFS(graph, test = instructions, print_name = False):
