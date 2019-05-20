@@ -104,17 +104,36 @@ def start_proc(vertice):
 	if CS(act.sentence)[-2] != '.':
 		return True
 
+def there_is_inf(act):
+	for i in act.keys:
+		if i != 'VERB':
+			for j in act.inform[i]:
+				morph = j[0].morph
+				if morph.__contains__('VerbForm') and morph['VerbForm'] == 'Inf':
+					return True
+	return False
+
 def instructions(vertice):
 	act = vertice[0].value
 	if start_proc(vertice):
 		return False
-	mark = act.type_action in ['Imperative', 'Modal']
+	if act.type_action in ['Imperative', 'Modal']:
+		return True
 	if len(act.inform['SUBJECT']) == 0:
 		morph = act.inform['VERB'][0].morph
-		mark = mark or (morph.__contains__('Person') and morph['Person'] == '3' and 
-			morph.__contains__('Number') and morph['Number'] == 'Sing')
-	mark = mark or len(act.inform['SUBJECT']) == 1 and act.inform['SUBJECT'][0][0].lemma in ['Вы', 'вы']
-	return mark
+		if ((morph.__contains__('Person') and morph['Person'] == '3' and 
+			morph.__contains__('Number') and morph['Number'] == 'Sing') and
+			there_is_inf(act)):
+			return True
+	if len(act.inform['SUBJECT']) == 1:
+		morph = act.inform['VERB'][0].morph
+		if morph.__contains__('Person') and morph['Person'] == '2':
+			lemma = act.inform['VERB'][0].lemma
+			if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
+				return lemma != 'быть' and there_is_inf(act)
+			if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+				return True
+	return False
 
 def DFS(graph, test = instructions):
 	list_ = []
