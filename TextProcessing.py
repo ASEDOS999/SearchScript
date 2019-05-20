@@ -122,9 +122,8 @@ def instructions(vertice):
 	if len(act.inform['SUBJECT']) == 0:
 		morph = act.inform['VERB'][0].morph
 		if ((morph.__contains__('Person') and morph['Person'] == '3' and 
-			morph.__contains__('Number') and morph['Number'] == 'Sing') and
-			there_is_inf(act)):
-			return True
+			morph.__contains__('Number') and morph['Number'] == 'Sing')):
+				return lemma != 'быть' and there_is_inf(act)
 	if len(act.inform['SUBJECT']) == 1:
 		morph = act.inform['VERB'][0].morph
 		if morph.__contains__('Person') and morph['Person'] == '2':
