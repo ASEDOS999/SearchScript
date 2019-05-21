@@ -99,6 +99,35 @@ class graph_construct_title(graph_construct):
 	def __init__(self, text):
 		graph_construct.__init__(self, text)
 
+	def PartOfList(self, cur_text):
+		def start_analyse():
+			i = 0
+			while i < len(cur_text) and cur_text[i] == ' ':
+				i+= 1
+			if i == len(cur_text):
+				return False
+			# Bulleted List
+			if cur_text[i] == '*':
+				return True
+			# Numbered list
+			while i < len(cur_text) and cur_text[i].isnumeric():
+				i += 1
+			if i == len(cur_text):
+				return False
+			if cur_text[i] == '.':
+				return True
+			return False
+		def end_analyse():
+			i = len(cur_text) - 1
+			while i > -1 and cur_text[i] == ' ':
+				i -= 1
+			if i == -1:
+				return False
+			if cur_text[i] == ';':
+				return True
+			return False
+		return end_analyse() or start_analyse()
+
 	def title_processing(self, cur, cur_text, sections, num_sent):
 		from isanlp.processor_remote import ProcessorRemote
 		proc_syntax = ProcessorRemote('localhost', 3334, 'default')
@@ -108,7 +137,7 @@ class graph_construct_title(graph_construct):
 				cur_text = cur_text[1:]
 			if len(cur_text) > 0 and cur_text[-1] == '\n':
 				cur_text = cur_text[:-1]
-			if len(cur_text) > 0:
+			if len(cur_text) > 0 and not self.PartOfList(cur_text):
 				analysis_res = proc_syntax(cur_text)
 				if len(analysis_res['tokens']) <= tokens_limit:
 					cur = dict()
