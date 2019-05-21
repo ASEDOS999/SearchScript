@@ -100,17 +100,21 @@ class graph_construct_title(graph_construct):
 		graph_construct.__init__(self, text)
 
 	def title_processing(self, cur, cur_text, sections, num_sent):
+		from isanlp.processor_remote import ProcessorRemote
+		proc_syntax = ProcessorRemote('localhost', 3334, 'default')
+		tokens_limit = 10
 		if num_sent <= 1:
-			# It is title of new section
 			if cur_text[0] == '\n':
 				cur_text = cur_text[1:]
 			if len(cur_text) > 0 and cur_text[-1] == '\n':
 				cur_text = cur_text[:-1]
 			if len(cur_text) > 0:
-				cur = dict()
-				cur['title'] = cur_text
-				sections.append(cur)
-				cur['tree'] = []
+				analysis_res = proc_syntax(cur_text)
+				if len(analysis_res['tokens']) <= tokens_limit:
+					cur = dict()
+					cur['title'] = cur_text
+					sections.append(cur)
+					cur['tree'] = []
 		if cur is None:
 			cur = dict()
 			cur['title'] = ''
