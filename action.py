@@ -87,6 +87,7 @@ class action:
 		self.name_action = name
 		self.sentence = sentence
 		self.type_action = type_action
+		self.section = ''
 	
 	def phrase(self, list_index):
 		list_index.sort()
