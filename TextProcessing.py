@@ -219,8 +219,6 @@ def start_proc(vertice):
 	act = vertice[0].value
 	if act.name_action == 'ROOT':
 		return True
-	if CS(act.sentence)[-2] != '.':
-		return True
 
 def there_is_inf(act):
 	for i in act.keys:
