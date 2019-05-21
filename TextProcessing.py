@@ -99,6 +99,25 @@ class graph_construct_title(graph_construct):
 	def __init__(self, text):
 		graph_construct.__init__(self, text)
 
+	def title_processing(self, cur, cur_text, sections, num_sent):
+		if num_sent <= 1:
+			# It is title of new section
+			if cur_text[0] == '\n':
+				cur_text = cur_text[1:]
+			if len(cur_text) > 0 and cur_text[-1] == '\n':
+				cur_text = cur_text[:-1]
+			if len(cur_text) > 0:
+				cur = dict()
+				cur['title'] = cur_text
+				sections.append(cur)
+				cur['tree'] = []
+		if cur is None:
+			cur = dict()
+			cur['title'] = ''
+			sections.append(cur)
+			cur['tree'] = []
+		return cur
+
 	def get_list_of_tree(self):
 		text = self.text
 		list_n = [0]
@@ -134,17 +153,7 @@ class graph_construct_title(graph_construct):
 					N = 0
 				list_.append(len(text) + 1)
 			if list_n[j] != list_n[j + 1]:
-				if num_sent <= 1:
-					# It is title of new section
-					cur = dict()
-					cur['title'] = cur_text
-					sections.append(cur)
-					cur['tree'] = []
-				if cur is None:
-					cur = dict()
-					cur['title'] = ''
-					sections.append(cur)
-					cur['tree'] = []
+				cur = self.title_processing(cur, cur_text, sections, num_sent)
 				root_list = []
 				# Constructing syntactic tree
 				if len(cur_text[list_n[j]:list_n[j+1]]) > 1000:
