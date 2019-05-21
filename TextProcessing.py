@@ -21,7 +21,7 @@ class FAT:
 class graph_construct:
 	def __init__(self, text):
 		self.text = text
-		self.result = []
+		self.results = []
 		self.main_tree = None
 
 	def get_list_of_tree(self):
@@ -47,7 +47,7 @@ class graph_construct:
 					if N > 1000:
 						list_.append(last)
 						N = 0
-					list_.append(len(text) + 1)
+				list_.append(len(text) + 1)
 				for j in range(len(list_) - 1):
 					root_list = root_list + action.construct_tree(text[list_[j] : list_[j + 1]])
 			else:
@@ -95,8 +95,84 @@ class graph_construct:
 		return self.main_tree
 
 
-from action import construct_sentence as CS
+class graph_construct_title(graph_construct):
+	def __init__(self, text):
+		graph_construct.__init__(self, text)
 
+	def get_list_of_tree(self):
+		text = self.text
+		list_n = [0]
+		text = text
+		# Separate to paragraphes
+		for i in range(len(text)):
+			if text[i] == '\n':
+				list_n.append(i)
+		list_n.append(len(text) + 1)
+		root_list = []
+		results = []
+		sections = []
+		cur = None
+		# Separate to sentence
+		for j in range(len(list_n) - 1):
+			root_list = []
+			cur_text = text[list_n[j] : list_n[j + 1]]
+			list_ = []
+			N = 0
+			num_sent = 0
+			for i in range(len(cur_text)):
+				if cur_text[i] in ['.', '!', '?']:
+					last = i
+					num_sent += 1
+				N += 1
+				if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
+					last = i + 2
+					i += 2
+					N += 2
+					num_sent += 1
+				if N > 1000:
+					list_.append(last)
+					N = 0
+				list_.append(len(text) + 1)
+			if list_n[j] != list_n[j + 1]:
+				if num_sent <= 1:
+					# It is title of new section
+					cur = dict()
+					cur['title'] = cur_text
+					sections.append(cur)
+					cur['tree'] = []
+				if cur is None:
+					cur = dict()
+					cur['title'] = ''
+					sections.append(cur)
+					cur['tree'] = []
+				root_list = []
+				# Constructing syntactic tree
+				if len(cur_text[list_n[j]:list_n[j+1]]) > 1000:
+					for i in range(len(list_) - 1):
+						root_list = root_list + action.construct_tree(text[list_[i] : list_[i + 1]])
+				else:
+					root_list = action.construct_tree(text[list_n[j] : list_n[j + 1]])
+				cur['tree'].append(root_list)
+		# Transform syntactic tree to action tree
+		for cur in sections:
+			cur['action_tree'] = []
+			for i in cur['tree']:
+				list_act = []
+				for root in i:
+					list_act.append(action.get_actions_tree(root))
+				cur['action_tree'].append(list_act)
+				self.results.append(list_act)
+				for root in list_act:
+					root = self.add_section(root, cur['title'])
+		return results
+
+	def add_section(self, root, name):
+		root.value.section = name
+		for i in root.kids:
+			self.add_section(i[0], name)
+		return root
+
+from action import construct_sentence as CS
 def start_proc(vertice):
 	act = vertice[0].value
 	if act.name_action == 'ROOT':
@@ -139,19 +215,19 @@ def DFS(graph, test = instructions, print_name = False):
 		if test(i):
 			list_.append(i[0].value)
 			if print_name:
-				print(i[0].value.name_action)
-		list_ += DFS(i[0])
+				print('hello', i[0].value.name_action)
+		list_ += DFS(i[0], test, print_name)
 	if type(graph) == FAT:
 		for i in graph.in_kids:
 			if test(i):
 				list_.append(i[0].value)
-			if print_name:
-				print(i[0].value.name_action)
-			list_ += DFS(i[0])
+				if print_name:
+					print('hello', i[0].value.name_action)
+			list_ += DFS(i[0], test, print_name)
 		for i in graph.out_kids:
 			if test(i):
 				list_.append(i[0].value)
 				if print_name:
-					print(i[0].value.name_action)
-			list_ += DFS(i[0])
+					print('hello', i[0].value.name_action)
+			list_ += DFS(i[0], test, print_name)
 	return list_
