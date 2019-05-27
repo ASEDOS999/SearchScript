@@ -229,45 +229,41 @@ def there_is_inf(act):
 					return True
 	return False
 
-def instructions(vertice):
+def instructions(vertice, current_list):
 	act = vertice[0].value
-	if start_proc(vertice):
-		return False
-	if act.type_action in ['Imperative', 'Modal']:
-		return True
-	lemma = act.inform['VERB'][0].lemma
-	morph = act.inform['VERB'][0].morph
-	if (len(act.inform['SUBJECT']) == 0 and
-		morph.__contains__('Person') and morph['Person'] == '3' and 
-		morph.__contains__('Number') and morph['Number'] == 'Sing'):
-			return lemma != 'быть' and there_is_inf(act)
-	if (len(act.inform['SUBJECT']) == 1 and 
-		morph.__contains__('Person') and morph['Person'] == '2'):
-		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
-			return lemma != 'быть' and there_is_inf(act)
-		if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+	def condition():
+		if start_proc(vertice):
+			return False
+		if act.type_action in ['Imperative', 'Modal']:
 			return True
-	return False
+		lemma = act.inform['VERB'][0].lemma
+		morph = act.inform['VERB'][0].morph
+		if (len(act.inform['SUBJECT']) == 0 and
+			morph.__contains__('Person') and morph['Person'] == '3' and 
+			morph.__contains__('Number') and morph['Number'] == 'Sing'):
+				return lemma != 'быть' and there_is_inf(act)
+		if (len(act.inform['SUBJECT']) == 1 and 
+			morph.__contains__('Person') and morph['Person'] == '2'):
+			if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
+				return lemma != 'быть' and there_is_inf(act)
+			if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+				return True
+		return False
+	if condition():
+		if current_list is None:
+			current_list = []
+		current_list.append(vertice[0].value)
+	return current_list
 
-def DFS(graph, test = instructions, print_name = False):
-	list_ = []
+def DFS(graph, test = instructions, list_ = None):
 	for i in graph.kids:
-		if test(i):
-			list_.append(i[0].value)
-			if print_name:
-				print('hello', i[0].value.name_action)
-		list_ += DFS(i[0], test, print_name)
+		list_ = test(i, list_)
+		list_ = DFS(i[0], test, list_)
 	if type(graph) == FAT:
 		for i in graph.in_kids:
-			if test(i):
-				list_.append(i[0].value)
-				if print_name:
-					print('hello', i[0].value.name_action)
-			list_ += DFS(i[0], test, print_name)
+			list_ = test(i, list_)
+			list_ = DFS(i[0], test, list_)
 		for i in graph.out_kids:
-			if test(i):
-				list_.append(i[0].value)
-				if print_name:
-					print('hello', i[0].value.name_action)
-			list_ += DFS(i[0], test, print_name)
+			list_ = test(i, list_)
+			list_ = DFS(i[0], test, list_)
 	return list_
