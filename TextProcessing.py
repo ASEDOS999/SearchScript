@@ -1,5 +1,7 @@
 import action
 # Full Action Tree
+# It is syntactic tree for all text
+# It is constucted through a list of old action trees
 class FAT:
 	def __init__(self, value = None, old_vert = None, sentence = None):
 		self.value = value
@@ -12,13 +14,17 @@ class FAT:
 		self.out_kids = []
 		self.in_kids = []
 
+	# Children from the next paragraph
 	def add_out_child(self, value, mytype = 'OUT'):
 		self.out_kids.append((value, mytype))
 
+	# Children from the current paragraph
 	def add_in_child(self, value, mytype = 'IN'):
 		self.in_kids.append((value, mytype))
 
+# CLasses for constructing FAT
 class graph_construct:
+	# Without processing sections
 	def __init__(self, text):
 		self.text = text
 		self.results = []
@@ -96,6 +102,7 @@ class graph_construct:
 
 
 class graph_construct_title(graph_construct):
+	# With processing sections
 	def __init__(self, text):
 		graph_construct.__init__(self, text)
 
@@ -214,7 +221,11 @@ class graph_construct_title(graph_construct):
 			self.add_section(i[0], name)
 		return root
 
+
+# Different conditions for FAT's DFS
 from action import construct_sentence as CS
+
+# Test for roots
 def start_proc(vertice):
 	act = vertice[0].value
 	if act.name_action == 'ROOT':
@@ -229,7 +240,8 @@ def there_is_inf(act):
 					return True
 	return False
 
-def instructions(vertice, current_list):
+# Tests for instuctions
+def instructions(vertice, current_result):
 	act = vertice[0].value
 	def condition():
 		if start_proc(vertice):
@@ -250,20 +262,40 @@ def instructions(vertice, current_list):
 				return True
 		return False
 	if condition():
-		if current_list is None:
-			current_list = []
-		current_list.append(vertice[0].value)
-	return current_list
+		if current_result is None:
+			current_result = []
+		current_result.append(vertice[0].value)
+	return current_result
 
-def DFS(graph, test = instructions, list_ = None):
+# Tests for instuctions
+def common_search_script(vertice, current_result):
+	if current_result is None:
+		current_result = dict()
+	act = vertice[0].value
+	def condition():
+		if start_proc(vertice):
+			return False
+		if act.type_action in ['Imperative', 'Modal']:
+			return True
+		# ...
+		return False
+	if condition():
+		name_subj = None
+		if not current_result.__contains__(name_subj):
+			current_result[name_subj] = []
+		current_result[name_subj].append(vertice[0].value)
+	return current_result
+
+# Deep-First Search specially for FAT
+def DFS(graph, test = instructions, result = None):
 	for i in graph.kids:
-		list_ = test(i, list_)
-		list_ = DFS(i[0], test, list_)
+		result = test(i, result)
+		result = DFS(i[0], test, result)
 	if type(graph) == FAT:
 		for i in graph.in_kids:
-			list_ = test(i, list_)
-			list_ = DFS(i[0], test, list_)
+			result = test(i, result)
+			result = DFS(i[0], test, result)
 		for i in graph.out_kids:
-			list_ = test(i, list_)
-			list_ = DFS(i[0], test, list_)
-	return list_
+			result = test(i, result)
+			result = DFS(i[0], test, result)
+	return result
