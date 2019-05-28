@@ -240,28 +240,31 @@ def there_is_inf(act):
 					return True
 	return False
 
+
+
 # Tests for instuctions
-def instructions(vertice, current_result):
-	act = vertice[0].value
-	def condition():
-		if start_proc(vertice):
-			return False
-		if act.type_action in ['Imperative', 'Modal']:
-			return True
-		lemma = act.inform['VERB'][0].lemma
-		morph = act.inform['VERB'][0].morph
-		if (len(act.inform['SUBJECT']) == 0 and
-			morph.__contains__('Person') and morph['Person'] == '3' and 
-			morph.__contains__('Number') and morph['Number'] == 'Sing'):
-				return lemma != 'быть' and there_is_inf(act)
-		if (len(act.inform['SUBJECT']) == 1 and 
-			morph.__contains__('Person') and morph['Person'] == '2'):
-			if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
-				return lemma != 'быть' and there_is_inf(act)
-			if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
-				return True
+def cond_instr(vertice):
+	if start_proc(vertice):
 		return False
-	if condition():
+	act = vertice[0].value
+	if act.type_action in ['Imperative', 'Modal']:
+		return True
+	lemma = act.inform['VERB'][0].lemma
+	morph = act.inform['VERB'][0].morph
+	if (len(act.inform['SUBJECT']) == 0 and
+		morph.__contains__('Person') and morph['Person'] == '3' and 
+		morph.__contains__('Number') and morph['Number'] == 'Sing'):
+			return lemma != 'быть' and there_is_inf(act)
+	if (len(act.inform['SUBJECT']) == 1 and 
+		morph.__contains__('Person') and morph['Person'] == '2'):
+		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
+			return lemma != 'быть' and there_is_inf(act)
+		if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+			return True
+	return False
+
+def instructions(vertice, current_result):
+	if cond_instr(vertice):
 		if current_result is None:
 			current_result = []
 		current_result.append(vertice[0].value)
@@ -272,18 +275,19 @@ def common_search_script(vertice, current_result):
 	if current_result is None:
 		current_result = dict()
 	act = vertice[0].value
-	def condition():
-		if start_proc(vertice):
-			return False
-		if act.type_action in ['Imperative', 'Modal']:
-			return True
-		# ...
-		return False
-	if condition():
-		name_subj = None
+	if cond_instr(vertice):
+		name_subj = 'Instructions'
 		if not current_result.__contains__(name_subj):
 			current_result[name_subj] = []
 		current_result[name_subj].append(vertice[0].value)
+		return current_result
+	subj = act.inform['SUBJECT']
+	if len(subj) > 0:
+		for i in subj:
+			name_subj = i[0].lemma
+			if not current_result.__contains__(name_subj):
+				current_result[name_subj] = []
+			current_result[name_subj].append(vertice[0].value)
 	return current_result
 
 # Deep-First Search specially for FAT
