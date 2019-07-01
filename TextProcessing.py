@@ -232,7 +232,7 @@ def start_proc(vertice):
 		return True
 
 def there_is_inf(act):
-	for i in act.keys:
+	for i in act.inform.keys():
 		if i != 'VERB':
 			for j in act.inform[i]:
 				morph = j[0].morph
@@ -251,11 +251,12 @@ def cond_instr(vertice):
 		return True
 	lemma = act.inform['VERB'][0].lemma
 	morph = act.inform['VERB'][0].morph
-	if (len(act.inform['SUBJECT']) == 0 and
+	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
+	if (len(subj) == 0 and
 		morph.__contains__('Person') and morph['Person'] == '3' and 
 		morph.__contains__('Number') and morph['Number'] == 'Sing'):
 			return lemma != 'быть' and there_is_inf(act)
-	if (len(act.inform['SUBJECT']) == 1 and 
+	if (len(subj) == 1 and 
 		morph.__contains__('Person') and morph['Person'] == '2'):
 		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
 			return lemma != 'быть' and there_is_inf(act)
@@ -268,26 +269,6 @@ def instructions(vertice, current_result):
 		if current_result is None:
 			current_result = []
 		current_result.append(vertice[0].value)
-	return current_result
-
-# Tests for instuctions
-def common_search_script(vertice, current_result):
-	if current_result is None:
-		current_result = dict()
-	act = vertice[0].value
-	if cond_instr(vertice):
-		name_subj = 'Instructions'
-		if not current_result.__contains__(name_subj):
-			current_result[name_subj] = []
-		current_result[name_subj].append(vertice[0].value)
-		return current_result
-	subj = act.inform['SUBJECT']
-	if len(subj) > 0:
-		for i in subj:
-			name_subj = i[0].lemma
-			if not current_result.__contains__(name_subj):
-				current_result[name_subj] = []
-			current_result[name_subj].append(vertice[0].value)
 	return current_result
 
 # Deep-First Search specially for FAT
