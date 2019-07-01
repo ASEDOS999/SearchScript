@@ -52,13 +52,42 @@ class text_structure:
 			return False
 		return end_analyse() or start_analyse()
 
+	def extract_name_of_POL(self, cur_text):
+		name = cur_text
+		i = 0
+		while i < len(cur_text) and cur_text[i] == ' ':
+			i+= 1
+		if name[i] == '*':
+			i+=1
+			start = i
+			while i < len(name) and not name[i] in ['.', '!', '?']:
+				i += 1
+			return name[start : i + 1]
+		prev = i
+		while i < len(cur_text) and cur_text[i].isnumeric():
+			i += 1
+		if cur_text[i] == '.':
+			i+= 1
+			start = i
+			while i < len(name) and not name[i] in ['.', '!', '?']:
+				i += 1
+			return name[start : i + 1]
+		else:
+			start = prev
+			while i < len(name) and not name[i] in ['.', '!', '?']:
+				i += 1
+			return name[start : i + 1]
+
 	def title_processing(self, cur, cur_text, sections, num_sent):
+		# It has to be rewritten
 		from isanlp.processor_remote import ProcessorRemote
 		proc_syntax = ProcessorRemote('localhost', 3334, 'default')
 		tokens_limit = 10
 		if num_sent <= 1:
-			if cur_text[0] == '\n':
-				cur_text = cur_text[1:]
+			i = 0
+			while i < len(cur_text) and cur_text[i] in ['\n', ' ', '\t']:
+				i+= 1
+			cur_text = cur_text[i:]
 			if len(cur_text) > 0 and cur_text[-1] == '\n':
 				cur_text = cur_text[:-1]
 			if len(cur_text) > 0 and not self.PartOfList(cur_text):
@@ -75,79 +104,141 @@ class text_structure:
 			cur['tree'] = []
 		return cur
 
-# CLass for constructing FAT
-class graph_construct(text_structure):
+
+class text_separation(text_structure):
 	def __init__(self, text):
 		self.text = text
-		self.results = []
-		self.main_tree = None
 
-	def get_list_of_tree(self):
+	def separate_to_paragraphes(self):
 		text = self.text
 		list_n = [0]
-		text = text
-		# Separate to paragraphes
 		for i in range(len(text)):
 			if text[i] == '\n':
 				list_n.append(i)
 		list_n.append(len(text) + 1)
-		root_list = []
 		results = []
-		sections = []
-		cur = None
-		# Separate to sentence
-		for j in range(len(list_n) - 1):
-			root_list = []
-			cur_text = text[list_n[j] : list_n[j + 1]]
-			list_ = []
-			N = 0
-			num_sent = 0
-			for i in range(len(cur_text)):
-				if cur_text[i] in ['.', '!', '?']:
-					last = i
-					num_sent += 1
-				N += 1
-				if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
-					last = i + 2
-					i += 2
-					N += 2
-					num_sent += 1
-				if N > 1000:
-					list_.append(last)
-					N = 0
-				list_.append(len(text) + 1)
-			if list_n[j] != list_n[j + 1]:
-				cur = self.title_processing(cur, cur_text, sections, num_sent)
-				root_list = []
-				# Constructing syntactic tree
-				if len(cur_text[list_n[j]:list_n[j+1]]) > 1000:
-					for i in range(len(list_) - 1):
-						root_list = root_list + action.construct_tree(text[list_[i] : list_[i + 1]])
-				else:
-					root_list = action.construct_tree(text[list_n[j] : list_n[j + 1]])
-				cur['tree'].append(root_list)
-		# Transform syntactic tree to action tree
-		for cur in sections:
-			cur['action_tree'] = []
-			for i in cur['tree']:
-				list_act = []
-				for root in i:
-					list_act.append(action.get_actions_tree(root))
-				cur['action_tree'].append(list_act)
-				self.results.append(list_act)
-				for root in list_act:
-					root = self.add_section(root, cur['title'])
+		for idx, i in enumerate(list_n):
+			if idx < len(list_n) - 1:
+				if list_n[idx + 1] - i > 1:
+					if text[i] == '\n' and i < len(text) + 1:
+						results.append(i+1)
+					else:
+						results.append(i)
+			else:
+				if i - list_n[idx - 1] > 1:
+					results.append(i)
 		return results
 
-	def add_section(self, root, name):
-		root.value.section = name
-		for i in root.kids:
-			self.add_section(i[0], name)
-		return root
+	def separate_to_sentence(self, cur_text):
+		list_ = []
+		N = 0
+		num_sent = 0
+		for i in range(len(cur_text)):
+			if cur_text[i] in ['.', '!', '?']:
+				last = i
+				num_sent += 1
+			N += 1
+			if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
+				last = i + 2
+				i += 2
+				N += 2
+				num_sent += 1
+			if N > 1000:
+				list_.append(last)
+				N = 0
+			list_.append(len(cur_text) + 1)
+		return list_
 
-	def process_paragraph(self, list_tree):
+	def get_structure(self):
+		text = self.text
+		list_n = self.separate_to_paragraphes()
+		results = []
+		j = 0
+		section_name = None
+		while j < len(list_n) - 1:
+			cur_text = text[list_n[j] : list_n[j + 1]]
+			if list_n[j] != list_n[j + 1]:
+				if self.PartOfList(cur_text):
+					item = {
+						'Type' : 'list',
+						'MainWord' : None,
+						'Section' : section_name,
+						'List': []
+					}
+					mark = self.PartOfList(text[list_n[j+1]: list_n[j+2]])
+					local_section_name = None
+					while self.PartOfList(cur_text) or (mark and prev):
+						prev = self.PartOfList(cur_text)
+						list_sentence = self.separate_to_sentence(cur_text)
+						if prev == True:
+							local_section_name = self.extract_name_of_POL(cur_text)
+						cur = {
+							'Section' : local_section_name,
+							'Text' : cur_text,
+							'Sentences' : list_sentence
+						}
+						item['List'].append(cur)
+						j += 1
+						if j < len(list_n) - 1:
+							cur_text = text[list_n[j]:list_n[j+1]]
+						else:
+							break
+					results.append(item)
+				else:
+					list_sentence = self.separate_to_sentence(cur_text)
+					if self.title_processing(cur, cur_text, sections, num_sent):
+						section_name = cur_text
+						item = {
+							'Type' : 'paragraph',
+							'Section' : section_name,
+							'Text' : cur_text,
+							'Sentences' : list_sentence
+						}
+						results.append(item)
+						j += 1
+					else:
+						item = {
+							'Type' : 'paragraph',
+							'Section' : section_name,
+							'Text' : cur_text,
+							'Sentences' : list_sentence
+						}
+						results.append(item)
+						j += 1
+		return results
+
+# CLass for constructing FAT
+class graph_construct(text_structure):
+	def __init__(self, text):
+		self.structure = text_separation(text).get_structure()
+		self.results = []
+		self.main_tree = None
+
+	def get_list_of_tree(self):
+		for i in self.structure:
+			if i['Type'] == 'paragraph':
+				root_list = action.construct_tree(i['Text'])
+				i['Synt tree'] = root_list
+			if i['Type'] == 'list':
+				for j in i['List']:
+					root_list = action.construct_tree(j['Text'])
+					j['Synt tree'] = root_list
+		# Transform syntactic tree to action tree
+		for i in self.structure:
+			if i['Type'] == 'paragraph':
+				i['Action tree'] = []
+				for root in i['Synt tree']:
+					i['Action tree'].append(action.get_actions_tree(root))
+			if i['Type'] == 'list':
+				for j in i['List']:
+					j['Action tree'] = []
+					for root in j['Synt tree']:
+						j['Action tree'].append(action.get_actions_tree(root))
+
+	def process_paragraph(self, item_paragraph):
 		cur_vert = None
 		ret = None
+		list_tree = item_paragraph['Action tree']
 		for i in list_tree:
 			new_vert = FAT(old_vert = i)
 			if not cur_vert is None:
@@ -157,17 +248,40 @@ class graph_construct(text_structure):
 			cur_vert = new_vert
 		return ret
 
-	def transform_treelist_to_tree(self):
+	def process_list(self, item_list):
 		cur_vert = None
 		ret = None
-		for i in self.results:
+		list_paragraph = item_list['List']
+		for i in list_paragraph:
 			j = self.process_paragraph(i)
 			if not j is None:
 				if not cur_vert is None:
-					cur_vert.add_out_child(j)
+					cur_vert.add_out_child(j, mytype = 'next')
 				else:
 					ret = j
 				cur_vert = j
+		return ret
+
+	def transform_treelist_to_tree(self):
+		cur_vert = None
+		ret = None
+		for i in self.structure:
+			if i['Type'] == 'paragraph':
+				j = self.process_paragraph(i)
+				if not j is None:
+					if not cur_vert is None:
+						cur_vert.add_out_child(j)
+					else:
+						ret = j
+					cur_vert = j
+			if i['Type'] == 'list':
+				j = self.process_list(i)
+				if not j is None:
+					if not cur_vert is None:
+						cur_vert.add_out_child(j, mytype = 'list')
+					else:
+						ret = j
+					cur_vert = j
 		self.main_tree = ret
 
 	def construct(self):
