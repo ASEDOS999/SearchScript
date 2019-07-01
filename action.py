@@ -6,8 +6,6 @@ class tree:
 		self.kids = []
 		self.sentence = None
 
-	# The arguments of this function is a value of new vertices
-	# and type of relationship between parent and kid
 	def add_child(self, value, mytype = None):
 		self.kids.append((value, mytype))
 
@@ -19,9 +17,6 @@ class word:
 		self.index = index
 
 def construct_tree(text):
-#	from isanlp.processor_remote import ProcessorRemote
-#	proc_syntax = ProcessorRemote('localhost', 3334, 'default')
-#	analysis_res = proc_syntax(text)
 	from isanlp import PipelineCommon
 	from isanlp.processor_remote import ProcessorRemote
 	from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
@@ -76,14 +71,69 @@ def construct_sentence(list_word):
 		sentence = sentence + i + ' '
 	return sentence
 
+def descript_role(role):
+	descript_dict = {
+		'acomp' : 'adjectival complement',
+		'advcl' : 'adverbial clause modifier',
+		'advmod' : 'adverb modifier',
+		'agent' : 'agent',
+		'amod' : 'adjectival modifier',
+		'appos' : 'appositional modifier',
+		'aux' : 'auxiliary',
+		'auxpass' : 'passive auxiliary',
+		'cc' : 'coordinator',
+		'ccomp' : 'clausal complement',
+		'conj' : 'conjunct',
+		'cop' : 'copula',
+		'csubj' : 'clausal subject',
+		'csubjpass' : 'clausal passive subject',
+		'dep' : 'dependent',
+		'det' : 'determiner',
+		'discourse' : 'discourse element',
+		'dobj' : 'direct object',
+		'expl' : 'expletive',
+		'goeswith' : 'goes with',
+		'iobj' : 'indirect object',
+		'mark' : 'marker',
+		'mwe' : 'multi-word expression',
+		'neg' : 'negation modifier',
+		'nn' : 'noun compound modifier',
+		'npadvmod' : 'noun phrase as adverbal modifier',
+		'nsubj' : 'nominal subject',
+		'nsubjpass' : 'passive nominal subject',
+		'num' : 'numeric modifier',
+		'number' : 'element of compound number',
+		'parataxis' : 'parataxis',
+		'pcomp' : 'prepositional complement',
+		'pobj' : 'object of a prepostion',
+		'pass' : 'possession modifier',
+		'possessive' : 'possessive modifier',
+		'preconj' : 'preconjunct',
+		'predet' : 'predeterminer',
+		'prep' : 'prepositional modifier',
+		'prepc' : 'prepositional clausal modifier',
+		'prt' : 'phrasal verb particle',
+		'punct' : 'punctuation',
+		'quantmod' : 'quantifier phrase modifier',
+		'rcmod' : 'relative clause modifier',
+		'ref' : 'referent',
+		'root' : 'root',
+		'tmod' : 'temporal modifier',
+		'vmod' : 'reduced non-finite verbal modifier',
+		'xcomp' : 'open clausal complement',
+		'xsubj' : 'controlling subject',
+
+		'obl': 'oblique nominal',
+		'obj': 'object',
+		'nummod' : 'numeric modifier',
+		'subj' : 'subject'
+	}
+	if descript_dict.__contains__(role):
+		return descript_dict[role]
+	return role
 class action:
 	def __init__(self, verb, sentence = None, name = None, type_action = None):
-		# self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
-		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']
 		self.inform = dict()
-		self.test_inform = dict()
-		for i in self.keys:
-			self.inform[i] = []
 		self.inform['VERB'] = verb
 		self.name_action = name
 		self.sentence = sentence
@@ -97,10 +147,10 @@ class action:
 	
 	def extract_data_from_dict(self, list_):
 		ret_list = []
-		for j in range(len(list_)):
-			if list_[j]:
+		for j, item in enumerate(list_):
+			if item:
 				dict_ = dict()
-				for i in self.keys:
+				for i in self.inform.keys():
 					if i != 'VERB':
 						dict_[i] = []
 						for k in self.inform[i]:
@@ -120,16 +170,6 @@ class action:
 		list_ = [main_word, full_inform, depend_dict]
 		return self.extract_data_from_dict(list_)
 	
-	def get_test_inform(self):
-		dict_ = dict()
-		i = 'VERB'
-		j = 1
-		dict_[i] = self.phrase(self.inform[i][j])
-		for i in self.test_inform.keys():
-			dict_[i] = []
-			for k in self.test_inform[i]:
-				dict_[i].append(self.phrase(k[j]))
-		return dict_
 class action_verb():
 	def __init__(self, x, parent = None, dependence = None, with_participle = True):
 		self.x, self.parent, self.dependence = x, parent, dependence
@@ -214,31 +254,31 @@ def process_type(vert, parent = None, act = None):
 	if vert[0].value.postag == 'PART':
 		act.inform['VERB'][1].append(vert[0].value.index)
 		return 0
-	subject_type = ['agent', 'nsubj', 'xsubj']
-	object_type = ['dobj', 'iobj', 'obj']
-	array = [subject_type, 
-		object_type]
-	answer = [0] * (len(array) + 1)
-	for i in range(len(array)):
-		answer[i] = i + 1 if vert[1] in array[i] else 0
-	if np.array(answer).sum() == 0:
-		answer[-1] = len(array) + 1
-	act.inform[act.keys[np.array(answer).sum()]].append(extract_inform(vert, parent, act.sentence))
-	if act.test_inform.__contains__(vert[1]):
-		act.test_inform[vert[1]].append(extract_inform(vert, parent, act.sentence))
+	if act.inform.__contains__(vert[1]):
+		act.inform[vert[1]].append(extract_inform(vert, parent, act.sentence))
 	else:
-		act.test_inform[vert[1]] = [extract_inform(vert, parent, act.sentence)]
+		act.inform[vert[1]] = [extract_inform(vert, parent, act.sentence)]
+
 def get_inform_parent(parent, dependence, act, x = None):
 	if parent is None or act is None or x is None:
 		return 0
 	if (dependence == 'conj' or action_verb(x, parent, dependence).is_advparticiple()) and action_verb(parent).test():
-		if len(act.inform['SUBJECT']) == 0:
+		list_subj = ['agent', 'nsubj', 'xsubj']
+		mark = False
+		for i in list_subj:
+			mark = mark or act.inform.__contains__(i)
+		if not mark:
 			act_new = action(verb = (parent.value, [parent.value.index], None), sentence = act.sentence)
 			for i in parent.kids:
 				process_type(i, parent, act_new)
-			act.inform['SUBJECT'] = act_new.inform['SUBJECT']
+			for i in list_subj:
+				if act_new.inform.__contains__(i):
+					act.inform[i] = act_new.inform[i]
 	if action_verb(x, parent, dependence).is_participle() and parent.value.postag in ['NOUN', 'PRON']:
-			act.inform['SUBJECT'].append(extract_inform((parent, None), None, act.sentence))
+			if act.inform.__contains__('subj'):
+				act.inform['subj'].append(extract_inform((parent, None), None, act.sentence))
+			else:
+				act.inform['subj'] = [extract_inform((parent, None), None, act.sentence)]
 
 def get_actions(root):
 	all_actions = []
