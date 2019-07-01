@@ -81,6 +81,7 @@ class action:
 		# self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'TIME', 'PLACE', 'PURPOSE', 'WAY']
 		self.keys = ['VERB', 'SUBJECT', 'OBJECT', 'OTHER']
 		self.inform = dict()
+		self.test_inform = dict()
 		for i in self.keys:
 			self.inform[i] = []
 		self.inform['VERB'] = verb
@@ -118,7 +119,17 @@ class action:
 	def get_inform(self, main_word = False, full_inform = False, depend_dict = False):
 		list_ = [main_word, full_inform, depend_dict]
 		return self.extract_data_from_dict(list_)
-
+	
+	def get_test_inform(self):
+		dict_ = dict()
+		i = 'VERB'
+		j = 1
+		dict_[i] = self.phrase(self.inform[i][j])
+		for i in self.test_inform.keys():
+			dict_[i] = []
+			for k in self.test_inform[i]:
+				dict_[i].append(self.phrase(k[j]))
+		return dict_
 class action_verb():
 	def __init__(self, x, parent = None, dependence = None, with_participle = True):
 		self.x, self.parent, self.dependence = x, parent, dependence
@@ -213,7 +224,10 @@ def process_type(vert, parent = None, act = None):
 	if np.array(answer).sum() == 0:
 		answer[-1] = len(array) + 1
 	act.inform[act.keys[np.array(answer).sum()]].append(extract_inform(vert, parent, act.sentence))
-
+	if act.test_inform.__contains__(vert[1]):
+		act.test_inform[vert[1]].append(extract_inform(vert, parent, act.sentence))
+	else:
+		act.test_inform[vert[1]] = [extract_inform(vert, parent, act.sentence)]
 def get_inform_parent(parent, dependence, act, x = None):
 	if parent is None or act is None or x is None:
 		return 0
