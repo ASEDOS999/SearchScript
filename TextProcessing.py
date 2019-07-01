@@ -262,6 +262,10 @@ class graph_construct(text_structure):
 				cur_vert = j
 		return ret
 
+	def get_list(self):
+		self.get_list_of_tree()
+		return self.structure
+
 	def transform_treelist_to_tree(self):
 		cur_vert = None
 		ret = None
