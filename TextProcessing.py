@@ -337,7 +337,7 @@ def show(result):
 	ret = []
 	result = research_list(result)
 	for i in result.keys():
-		print('Section', i)
+		print('\n\nSection', i)
 		for j in result[i]:
 			if j['Type'] == 'paragraph':
 				for act in j['Action List']:
@@ -345,8 +345,31 @@ def show(result):
 					print('Sentence', CS(act.sentence))
 			if j['Type'] == 'list':
 				for key in j['Action List'].keys():
-					print('Section list', key)
+					print('\nSection list', key)
 					for list_ in j['Action List'][key]:
 						for act in list_:
 							print('Action', act.name_action)
 							print('Sentence', CS(act.sentence))
+
+def get_file(result, name_file = 'out.md'):
+	f = open(name_file, 'w')
+	ret = []
+	result = research_list(result)
+	for i in result.keys():
+		if not i is None:
+			f.write('# Section ' + i)
+		for j in result[i]:
+			if j['Type'] == 'paragraph':
+				for act in j['Action List']:
+					f.write('\n\n**' + act.name_action + '**')
+					f.write('\n\n*Sentence* ' + CS(act.sentence))
+			if j['Type'] == 'list':
+				f.write('\n\n## Start Of List')
+				for key in j['Action List'].keys():
+					f.write('\n\n * **Section list** ' + key)
+					for list_ in j['Action List'][key]:
+						for act in list_:
+							f.write('\n\n**' + act.name_action + '**')
+							f.write('\n\n*Sentence*' + CS(act.sentence))
+				f.write('\n\n## End Of List')
+		f.write('\n'*5)
