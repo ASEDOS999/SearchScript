@@ -47,7 +47,7 @@ class text_structure:
 				i -= 1
 			if i == -1:
 				return False
-			if not cur_text[i] in ['.', '!', '?']:
+			if cur_text[i] in [';', ',']:
 				return True
 			return False
 		return end_analyse() or start_analyse()
@@ -78,31 +78,21 @@ class text_structure:
 				i += 1
 			return name[start : i + 1]
 
-	def title_processing(self, cur, cur_text, sections, num_sent):
-		# It has to be rewritten
+	def title_processing(self, cur_text, list_sentence):
 		from isanlp.processor_remote import ProcessorRemote
 		proc_syntax = ProcessorRemote('localhost', 3334, 'default')
 		tokens_limit = 10
-		if num_sent <= 1:
+		if len(list_sentence) <= 1:
 			i = 0
 			while i < len(cur_text) and cur_text[i] in ['\n', ' ', '\t']:
 				i+= 1
 			cur_text = cur_text[i:]
 			if len(cur_text) > 0 and cur_text[-1] == '\n':
 				cur_text = cur_text[:-1]
-			if len(cur_text) > 0 and not self.PartOfList(cur_text):
+			if len(cur_text) > 0:
 				analysis_res = proc_syntax(cur_text)
-				if len(analysis_res['tokens']) <= tokens_limit:
-					cur = dict()
-					cur['title'] = cur_text
-					sections.append(cur)
-					cur['tree'] = []
-		if cur is None:
-			cur = dict()
-			cur['title'] = ''
-			sections.append(cur)
-			cur['tree'] = []
-		return cur
+				return len(analysis_res['tokens']) <= tokens_limit
+		return False
 
 
 class text_separation(text_structure):
@@ -136,17 +126,12 @@ class text_separation(text_structure):
 		for i in range(len(cur_text)):
 			if cur_text[i] in ['.', '!', '?']:
 				last = i
-				num_sent += 1
-			N += 1
-			if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
-				last = i + 2
-				i += 2
-				N += 2
-				num_sent += 1
-			if N > 1000:
+				if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
+					last = i + 2
+					i += 2
 				list_.append(last)
-				N = 0
-			list_.append(len(cur_text) + 1)
+				num_sent += 1
+		list_.append(len(cur_text) + 1)
 		return list_
 
 	def get_structure(self):
@@ -186,7 +171,7 @@ class text_separation(text_structure):
 					results.append(item)
 				else:
 					list_sentence = self.separate_to_sentence(cur_text)
-					if self.title_processing(cur, cur_text, sections, num_sent):
+					if self.title_processing(cur_text, list_sentence):
 						section_name = cur_text
 						item = {
 							'Type' : 'paragraph',
@@ -266,42 +251,11 @@ class graph_construct(text_structure):
 		self.get_list_of_tree()
 		return self.structure
 
-	def transform_treelist_to_tree(self):
-		cur_vert = None
-		ret = None
-		for i in self.structure:
-			if i['Type'] == 'paragraph':
-				j = self.process_paragraph(i)
-				if not j is None:
-					if not cur_vert is None:
-						cur_vert.add_out_child(j)
-					else:
-						ret = j
-					cur_vert = j
-			if i['Type'] == 'list':
-				j = self.process_list(i)
-				if not j is None:
-					if not cur_vert is None:
-						cur_vert.add_out_child(j, mytype = 'list')
-					else:
-						ret = j
-					cur_vert = j
-		self.main_tree = ret
-
-	def construct(self):
-		self.get_list_of_tree()
-		self.transform_treelist_to_tree()
-
-	def get_graph(self):
-		if self.main_tree is None:
-			self.construct()
-		return self.main_tree
 # Different conditions for FAT's DFS
 from action import construct_sentence as CS
 
 # Test for roots
-def start_proc(vertice):
-	act = vertice[0].value
+def start_proc(act):
 	if act.name_action == 'ROOT':
 		return True
 
@@ -314,13 +268,10 @@ def there_is_inf(act):
 					return True
 	return False
 
-
-
 # Tests for instuctions
-def cond_instr(vertice):
-	if start_proc(vertice):
+def cond_instr(act):
+	if start_proc(act):
 		return False
-	act = vertice[0].value
 	if act.type_action in ['Imperative', 'Modal']:
 		return True
 	lemma = act.inform['VERB'][0].lemma
@@ -338,23 +289,64 @@ def cond_instr(vertice):
 			return True
 	return False
 
-def instructions(vertice, current_result):
-	if cond_instr(vertice):
-		if current_result is None:
-			current_result = []
-		current_result.append(vertice[0].value)
-	return current_result
+def instructions(act):
+	return cond_instr(act)
 
-# Deep-First Search specially for FAT
-def DFS(graph, test = instructions, result = None):
-	for i in graph.kids:
-		result = test(i, result)
-		result = DFS(i[0], test, result)
-	if type(graph) == FAT:
-		for i in graph.in_kids:
-			result = test(i, result)
-			result = DFS(i[0], test, result)
-		for i in graph.out_kids:
-			result = test(i, result)
-			result = DFS(i[0], test, result)
+def research_action_tree(root, test = instructions, list_ = None):
+	if list_ is None:
+		list_ = []
+	if test(root.value):
+		list_.append(root.value)
+	for i in root.kids:
+		list_ = research_action_tree(i[0], test, list_)
+	return list_
+
+from collections import OrderedDict
+def research_list(list_tree, test = instructions):
+	result = OrderedDict()
+	for i in list_tree:
+		if i['Type'] == 'paragraph':
+			new_list = []
+			for root in i['Action tree']:
+				new_list = new_list + research_action_tree(root, test)
+			if not result.__contains__(i['Section']):
+				result[i['Section']] = []
+			result[i['Section']].append({
+					'Type':'paragraph', 
+					'Action List' : new_list.copy()
+					})
+		if i['Type'] == 'list':
+			cur = OrderedDict()
+			for k in i['List']:
+				new_list = []
+				for root in k['Action tree']:
+					new_list = new_list + research_action_tree(root, test)
+				if not cur.__contains__(k['Section']):
+					cur[k['Section']] = []
+				cur[k['Section']].append(new_list.copy())
+			if not result.__contains__(i['Section']):
+				result[i['Section']] = []
+			result[i['Section']].append({
+					'Type':'list', 
+					'Action List' : cur.copy()
+					})
 	return result
+
+
+def show(result):
+	ret = []
+	result = research_list(result)
+	for i in result.keys():
+		print('Section', i)
+		for j in result[i]:
+			if j['Type'] == 'paragraph':
+				for act in j['Action List']:
+					print('Action', act.name_action)
+					print('Sentence', CS(act.sentence))
+			if j['Type'] == 'list':
+				for key in j['Action List'].keys():
+					print('Section list', key)
+					for list_ in j['Action List'][key]:
+						for act in list_:
+							print('Action', act.name_action)
+							print('Sentence', CS(act.sentence))
