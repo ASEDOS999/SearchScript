@@ -1,0 +1,9 @@
+..gitignore.swp
+Demonstration/__pycache__/
+Demonstration/.ipynb_checkpoints
+Demonstration/Instructions/__pycache__/
+Demonstration/Instructions/.ipynb_checkpoints
+Demonstration/Prog_VS_Hand/__pycache__/
+Demonstration/Prog_VS_Hand/.ipynb_checkpoints
+__pycache__/
+

@@ -13,18 +13,17 @@ The script is a set of action described in the text. To find the script means to
 
 Examples of other conditions are action place, time, etc.
 
-In current model we separate following information about action:
-
-* action verb
-* action subject
-* action object
-* other
 
 ## Project's structure
 
-* [Demonstration](https://github.com/ASEDOS999/SearchScript/blob/master/Tests.ipynb) is a file with examples of project work
-* [Code](https://github.com/ASEDOS999/SearchScript/blob/master/action.py) is a main code of extracting action and information about it
-* [Experiments](https://github.com/ASEDOS999/SearchScript/tree/master/Process_type) is experiments that can improve our work
+* [Demonstration](https://github.com/ASEDOS999/SearchScript/tree/master/Demonstration) is a file with examples of project work
+* * [Demonstration of extracting actions](https://github.com/ASEDOS999/SearchScript/blob/master/Demonstration/Action_Tests.ipynb)
+* * [Work of extracting instruction-scripts](https://github.com/ASEDOS999/SearchScript/tree/master/Demonstration/Instuctions)
+* * [Comparison of extracted scripts by hand and by programm](https://github.com/ASEDOS999/SearchScript/tree/master/Demonstration/Script%20made%20by%20hand)
+* [Code](https://github.com/ASEDOS999/SearchScript/tree/master/ScriptExtract) is a main code of extracting action and information about it
+* * [Code for extracting actions](https://github.com/ASEDOS999/SearchScript/blob/master/ScriptExtract/action.py)
+* * [Code for extracting scripts](https://github.com/ASEDOS999/SearchScript/blob/master/ScriptExtract/TextProcessing.py)
+
 
 ## How Action Is Described
 
