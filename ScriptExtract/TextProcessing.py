@@ -377,3 +377,98 @@ def get_file(result, name_file = 'out.md'):
 							f.write('\n\n*Sentence*' + CS(act.sentence))
 				f.write('\n\n## End Of List')
 		f.write('\n'*5)
+
+def print_attributes(f, act):
+	f.write('\n\n**' + act.name_action + '**')
+	dict_ = act.get_inform(False, True, False)[0]
+	keys = list(dict_.keys())
+	keys.sort()
+	for i in keys:
+		f.write('\n\n' + descript_role(i).upper())
+		if i != 'VERB':
+			for j in dict_[i]:
+				f.write('\n\n--' + j)
+		else:
+			f.write('\n\n--' + dict_[i])
+
+from action import descript_role
+def get_file_attributes(result, name_file = 'out.md'):
+	f = open(name_file, 'w')
+	ret = []
+	result = research_list(result)
+	for i in result.keys():
+		if not i is None:
+			f.write('# Section ' + i)
+		for j in result[i]:
+			if j['Type'] == 'paragraph':
+				for act in j['Action List']:
+					f.write('\n\n**' + act.name_action + '**')
+					f.write('\n\n*Sentence* ' + CS(act.sentence))
+					print_attributes(f, act)
+			if j['Type'] == 'list':
+				f.write('\n\n## Start Of List')
+				for key in j['Action List'].keys():
+					f.write('\n\n * **Section list** ' + key)
+					for list_ in j['Action List'][key]:
+						for act in list_:
+							f.write('\n\n**' + act.name_action + '**')
+							f.write('\n\n*Sentence*' + CS(act.sentence))
+							print_attributes(f, act)
+
+def get_file(result, name_file = 'out.md'):
+	f = open(name_file, 'w')
+	ret = []
+	result = research_list(result)
+	for i in result.keys():
+		if not i is None:
+			f.write('# Section ' + i)
+		for j in result[i]:
+			if j['Type'] == 'paragraph':
+				for act in j['Action List']:
+					f.write('\n\n**' + act.name_action + '**')
+					f.write('\n\n*Sentence* ' + CS(act.sentence))
+			if j['Type'] == 'list':
+				f.write('\n\n## Start Of List')
+				for key in j['Action List'].keys():
+					f.write('\n\n * **Section list** ' + key)
+					for list_ in j['Action List'][key]:
+						for act in list_:
+							f.write('\n\n**' + act.name_action + '**')
+							f.write('\n\n*Sentence*' + CS(act.sentence))
+				f.write('\n\n## End Of List')
+		f.write('\n'*5)
+import pickle
+def get_file_actions_inform(result, name_file = 'data.pickle'):
+	def extract(act):
+		inform = act.inform
+		sent = act.sentence
+		s = str()
+		dict_ = dict()
+		for key in act.inform.keys():
+			s = str()
+			if key == 'VERB':
+				for i in act.inform[key][1]:
+					s += ' ' + sent[i]
+				dict_[key] = s
+			else:
+				dict_[key] = list()
+				for j in act.inform[key]:
+					s= str()
+					for i in j[1]:
+						s += ' ' + sent[i]
+					dict_[key].append(s)
+		return (dict_, CS(sent))
+	f = open(name_file, 'w')
+	ret = []
+	result = research_list(result)
+	for i in result.keys():
+		for j in result[i]:
+			if j['Type'] == 'paragraph':
+				ret = ret + [extract(act) for act in j['Action List']]
+			if j['Type'] == 'list':
+				for key in j['Action List'].keys():
+					for list_ in j['Action List'][key]:
+						ret = ret + [extract(act) for act in list_]
+	with open(name_file, 'wb') as f:
+		pickle.dump(ret, f)
+		f.close()
