@@ -20,7 +20,7 @@ def get_inform(name_file = 'README.md'):
 	num = [0, 0, 0, 0]
 	dict_ = dict()
 	for i in os.listdir():
-		if '.pickle' in i:
+		if '.pickle' in i and i != 'attr.pickle':
 			with open(i, 'rb') as f:
 				cur = pickle.load(f)
 				f.close()
@@ -56,8 +56,21 @@ def get_inform(name_file = 'README.md'):
 		f.write('-- Documents Number: ' + str(num[i]) + '\n\n')
 		f.write('-- Mean Actions Number: ' + str(length[i]/num[i]) + '\n\n')
 		f.write('-- Mean Attributes Number: ' + str(keys[i]/length[i]) + '\n\n')
-	f.write('Number of unique keys: ' + str(len(dict_.keys())))
+	f.write('Number of unique keys in attributes: ' + str(len(dict_.keys())) + '\n\n')
+	keys = list(dict_.keys())
+	keys.sort()
+	attr = list()
+	list_ = ['VERB', 'punct']
+	for i in keys:
+		for j in keys:
+			if not(i in list_ or j in list_):
+				if not (j, i) in attr:
+					attr.append((i, j))
+	f.write('Number of unique keys for pair-attributes: ' + str(len(dict_.keys())) + '\n\n')
 	f.close()
+	with open('attr.pickle', 'wb') as f:
+		pickle.dump(attr, f)
+		f.close()
 
 
 results = []

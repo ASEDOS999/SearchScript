@@ -42,4 +42,7 @@
 
 -- Mean Attributes Number: 2.7981194690265485
 
-Number of unique keys: 26
+Number of unique keys in attributes: 26
+
+Number of unique keys for pair-attributes: 26
+
