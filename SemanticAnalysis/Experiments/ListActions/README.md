@@ -1,6 +1,13 @@
 # Information about files
 
-## Actions Number
+## Files Description
+
+
+* `extract_actions.py` is the script creating files `Actions*_*.pickle` that contains information about actions from texts. Also this script creates the file `attr.pickle` that contains keys
+* `data_preproc.py` is the script creating file `samples.pickle` that contains all keys from `attr.pickle` and samples of actions pair
+
+
+## Actions Information
 
 - Actions1_
 
