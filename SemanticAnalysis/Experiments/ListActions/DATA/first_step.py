@@ -50,13 +50,14 @@ def create_table(dict_inform, dict_sentence, D, eps = 1.0):
 	keys.sort()
 	table = dict()
 	for i in keys:
+		table[i] = list()
 		for ind, act in enumerate(dict_inform[i]):
 			list_ = list()
 			for num, d in enumerate(list(D[ind, :])):
 				if d < eps:
 					list_.append(num)
 			neighbours = get_neighbours(list_, dict_inform)
-			table[i] = (act, neighbours)
+			table[i].append((act, neighbours))
 	return table
 
 def get_neighbours(num, dict_inform):
