@@ -39,6 +39,8 @@ def create_samples():
 	with open('samples.pickle', 'wb') as f:
 		pickle.dump(samples, f)
 		f.close
-
+	return samples
 if __name__ == '__main__':
-	create_samples()
+	samples = create_samples()
+	print(min([len(samples[i]) for i in samples.keys()]))
+	print(max([len(samples[i]) for i in samples.keys()]))

@@ -60,7 +60,7 @@ def get_inform(name_file = 'README.md'):
 	keys = list(dict_.keys())
 	keys.sort()
 	attr = list()
-	list_ = ['VERB', 'punct']
+	list_ = ['punct']
 	for i in keys:
 		for j in keys:
 			if not(i in list_ or j in list_):
