@@ -157,12 +157,16 @@ class text_separation(text_structure):
 						list_sentence = self.separate_to_sentence(cur_text)
 						if prev == True:
 							local_section_name = self.extract_name_of_POL(cur_text)
-						cur = {
-							'Section' : local_section_name,
-							'Text' : cur_text,
-							'Sentences' : list_sentence
-						}
-						item['List'].append(cur)
+							cur = {
+								'Section' : local_section_name,
+								'Text' : cur_text,
+								'Sentences' : list_sentence
+							}
+							item['List'].append(cur)
+						else:
+							_ = item['List'][-1]
+							item['List'][-1]['Text'] = _['Text'] + cur_text
+							item['List'][-1]['Sentences'] = _['Sentences'] + list_sentence
 						j += 1
 						if j < len(list_n) - 1:
 							cur_text = text[list_n[j]:list_n[j+1]]
