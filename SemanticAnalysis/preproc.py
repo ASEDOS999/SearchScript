@@ -204,22 +204,23 @@ def process(pipeline, text='Строка', keep_pos=True, keep_punct=False):
     return tagged_propn
 
 
-standard_library.install_aliases()
+if __name__ == '__main__':
+	standard_library.install_aliases()
 
-# URL of the UDPipe model
-udpipe_model_url = 'https://rusvectores.org/static/models/udpipe_syntagrus.model'
-udpipe_filename = udpipe_model_url.split('/')[-1]
+	# URL of the UDPipe model
+	udpipe_model_url = 'https://rusvectores.org/static/models/udpipe_syntagrus.model'
+	udpipe_filename = udpipe_model_url.split('/')[-1]
 
-if not os.path.isfile(udpipe_filename):
-    print('UDPipe model not found. Downloading...', file=sys.stderr)
-    wget.download(udpipe_model_url)
+	if not os.path.isfile(udpipe_filename):
+	    print('UDPipe model not found. Downloading...', file=sys.stderr)
+	    wget.download(udpipe_model_url)
 
-print('\nLoading the model...', file=sys.stderr)
-model = Model.load(udpipe_filename)
-process_pipeline = Pipeline(model, 'tokenize', Pipeline.DEFAULT, Pipeline.DEFAULT, 'conllu')
+	print('\nLoading the model...', file=sys.stderr)
+	model = Model.load(udpipe_filename)
+	process_pipeline = Pipeline(model, 'tokenize', Pipeline.DEFAULT, Pipeline.DEFAULT, 'conllu')
 
-print('Processing input...', file=sys.stderr)
-for line in sys.stdin:
-    res = unify_sym(line.strip())
-    output = process(process_pipeline, text=res)
-    print(' '.join(output))
+	print('Processing input...', file=sys.stderr)
+	for line in sys.stdin:
+	    res = unify_sym(line.strip())
+	    output = process(process_pipeline, text=res)
+	    print(' '.join(output))
