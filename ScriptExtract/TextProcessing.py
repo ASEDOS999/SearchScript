@@ -152,7 +152,7 @@ class text_separation(text_structure):
 					}
 					mark = self.PartOfList(text[list_n[j+1]: list_n[j+2]])
 					local_section_name = None
-					while self.PartOfList(cur_text) or (mark and prev):
+					while self.PartOfList(cur_text) or (not mark and prev):
 						prev = self.PartOfList(cur_text)
 						list_sentence = self.separate_to_sentence(cur_text)
 						if prev == True:
