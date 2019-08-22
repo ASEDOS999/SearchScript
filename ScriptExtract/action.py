@@ -16,7 +16,7 @@ class word:
 		self.morph = morph
 		self.index = index
 
-def construct_tree(text):
+def get_tree(text):
 	from isanlp import PipelineCommon
 	from isanlp.processor_remote import ProcessorRemote
 	from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
@@ -63,6 +63,24 @@ def construct_tree(text):
 			else:
 				list_[j].sentence = sentences[i]
 				root_list.append(list_[j])
+	return root_list
+
+def preprocessing_separation(text):
+	results = [0]
+	stop_list = ['.', '?', '!', '\n']
+	for ind, i in enumerate(text):
+		if i in stop_list:
+			results.append(ind+1)
+	if results[-1] != len(text):
+		results.append(len(text))
+	texts = [text[i:results[ind+1]] for ind, i in enumerate(results[:-1])]
+	return texts
+
+def construct_tree(text):
+	texts = preprocessing_separation(text)
+	root_list = list()
+	for i in texts:
+		root_list = root_list + get_tree(i)
 	return root_list
 
 def construct_sentence(list_word):
