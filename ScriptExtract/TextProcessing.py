@@ -124,12 +124,12 @@ class text_separation(text_structure):
 		N = 0
 		num_sent = 0
 		for i in range(len(cur_text)):
-			if cur_text[i] in ['.', '!', '?']:
+			if cur_text[i] in ['.', '!', '?', '\n']:
 				last = i
 				if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
 					last = i + 2
 					i += 2
-				list_.append(last)
+				list_.append(last+1)
 				num_sent += 1
 		list_.append(len(cur_text) + 1)
 		return list_
@@ -166,13 +166,14 @@ class text_separation(text_structure):
 						else:
 							_ = item['List'][-1]
 							item['List'][-1]['Text'] = _['Text'] + cur_text
-							item['List'][-1]['Sentences'] = _['Sentences'] + list_sentence
+							item['List'][-1]['Sentences'] = self.separate_to_sentence(item['List'][-1]['Text'])
 						j += 1
 						if j < len(list_n) - 1:
 							cur_text = text[list_n[j]:list_n[j+1]]
 						else:
 							break
 					results.append(item)
+					# print([i['Text'] for i in item['List']])
 				else:
 					list_sentence = self.separate_to_sentence(cur_text)
 					if self.title_processing(cur_text, list_sentence):
