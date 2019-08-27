@@ -3,12 +3,12 @@
 import sys
 sys.path.append('../../../ScriptExtract')
 from TextProcessing import graph_construct as GC
-from TextProcessing import research_list, show
 from TextProcessing import research_action_tree as RAT
 import action
 sys.path.append('../../')
 import sem_analysis as sa
 import gensim
+import numpy as np
 # TEXT PREPROCESSING
 
 # The following two functions are for to transform
@@ -138,7 +138,7 @@ def trivial_segmentation(path_file, model):
 				else:
 					res.append((c_next[0], d_next))
 		return res
-	def segmentation(full_list_centers, sentences):
+	def segmentation(full_list_centers, sentences, res):
 		prev = None
 		cur_text = ''
 		cur_item = None
@@ -168,9 +168,9 @@ def trivial_segmentation(path_file, model):
 	newest = list2tag_ud(new, model)
 	full_list = deploy_list(new)
 	sentences = deploy_list(newest)
-	full_list_centers = [(i[0], get_sentence_center(i[1])) 
+	full_list_centers = [(i[0], get_sentence_center(i[1], model)) 
 		for i in full_list]
-	nearest(full_list_centers)
-	TT, list_texts = segmentation(full_list_centers, sentences)
+	res = nearest(full_list_centers)
+	TT, list_texts = segmentation(full_list_centers, sentences, res)
 	return list_texts, TT
 	
