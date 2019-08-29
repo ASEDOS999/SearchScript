@@ -93,7 +93,7 @@ def get_sentence_center(sentence_tag_ud, model):
 def distance(a, b):
     return np.linalg.norm(a - b)
 
-def trivial_segmentation(path_file, model):
+def trivial_segmentation(path_file, model, data_dict = {}):
 	def deploy_list(some_list):
 		full_list = list()
 		for i in some_list:
@@ -104,7 +104,7 @@ def trivial_segmentation(path_file, model):
 					_ = _ + j
 				cur_list = _
 			full_list = full_list + (cur_list)
-			return full_list
+		return full_list
 	def nearest(full_list_centers):
 		c_prev, c_next = None, None
 		eps = 0.9
@@ -161,16 +161,23 @@ def trivial_segmentation(path_file, model):
 		list_texts.append(cur_text)
 		TT.append(cur_item / k)
 		return TT, list_texts
-	handle = open(path_file, "r")
-	text = handle.read()
-	handle.close()
-	new = text_segmentation(text)
-	newest = list2tag_ud(new, model)
-	full_list = deploy_list(new)
-	sentences = deploy_list(newest)
+	if not path_file in data_dict.keys():
+		handle = open(path_file, "r")
+		text = handle.read()
+		handle.close()
+		new = text_segmentation(text)
+		newest = list2tag_ud(new, model)
+	else:
+		with open(data_dict[path_file], 'rb') as f:
+			text, new, newest = pickle.load(f)
+			f.close()
+	full_list = deploy_list(newest)
+	sentences = deploy_list(new)
+	print('Sentences', len(sentences))
 	full_list_centers = [(i[0], get_sentence_center(i[1], model)) 
 		for i in full_list]
 	res = nearest(full_list_centers)
+	print('Res', len(res))
 	TT, list_texts = segmentation(full_list_centers, sentences, res)
 	return list_texts, TT
 	
