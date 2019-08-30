@@ -151,7 +151,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
         for ind, i in enumerate(res):
             if i[0] == prev:
                 cur_text = cur_text + sentences[ind][1]
-                if np.isnan(full_list_centers[ind][1]).any():
+                if not np.isnan(full_list_centers[ind][1]).any():
                     cur_item = cur_item + full_list_centers[ind][1]
                     k += 1
             else:
@@ -176,11 +176,9 @@ def trivial_segmentation(path_file, model, data_dict = {}):
         text, new, newest = data_dict[path_file]
     full_list = deploy_list(newest)
     sentences = deploy_list(new)
-    print('Sentences', len(sentences))
     full_list_centers = [(i[0], get_sentence_center(i[1], model)) 
         for i in full_list]
     res = nearest(full_list_centers)
-    print('Res', len(res))
     TT, list_texts = segmentation(full_list_centers, sentences, res)
     return list_texts, TT, new, newest, full_list, sentences
     
