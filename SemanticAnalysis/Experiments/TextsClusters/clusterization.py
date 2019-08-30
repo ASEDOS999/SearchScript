@@ -190,7 +190,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
     return list_texts, TT, list_tag_ud
     
 # Union of texts
-def union(list_texts, texts_vectors, eps = 0.45):
+def union(list_texts, texts_vectors, eps = 0.456):
     D = [(np.linalg.norm(i - texts_vectors[ind+1]), 
         ind, 
         ind+1) 
@@ -198,17 +198,18 @@ def union(list_texts, texts_vectors, eps = 0.45):
     D.sort(key = lambda x: x[0])
     D = [i for i in D if i[0] <= eps]
     union = dict()
+    _ = list()
     for i in D:
-        union[i[1]], union[i[0]] = i[0], i[1]
-        for j in D:
-            if (j[0] in [i[1], i[2]]) or (j[1] in [i[1], i[2]]):
-                D.remove(j)
+        if not(i[1] in _ or i[2] in _):
+            union[i[1]], union[i[2]] = i[2], i[1]
+            _.append(i[2])
+            _.append(i[1])
     old_index = list()
     for key in union.keys():
-        list_texts[key] += list_texts[union[key]]
-        texts_vectors[key] += texts_vectors[union[key]]
-        texts_vectors /= 2
-        old_index.append(union[key])
-        union.pop(union[key])
-    list_texts = [i for i in list_texts if not i in old_index]
+        if not key in old_index:
+            list_texts[key] += list_texts[union[key]]
+            texts_vectors[key] += texts_vectors[union[key]]
+            texts_vectors[key] /= 2
+            old_index.append(union[key])
+    list_texts = [i for ind,i in enumerate(list_texts) if not ind in old_index]
     return list_texts, texts_vectors
