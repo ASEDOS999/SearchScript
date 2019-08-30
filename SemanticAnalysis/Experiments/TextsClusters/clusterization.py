@@ -187,6 +187,17 @@ def trivial_segmentation(path_file, model, data_dict = {}):
         for i in full_list]
     res = nearest(full_list_centers)
     TT, list_texts,list_tag_ud = segmentation(full_list_centers, sentences, res, full_list)
+    _ = list()
+    for ind, i in enumerate(list_texts):
+        m = False
+        for j in i:
+            if j.isalpha() or j.isnumeric():
+                m = True
+        if not m:
+            _.append(ind)
+    TT = [i for ind, i in enumerate(TT) if not ind in _]
+    list_texts = [i for ind, i in enumerate(list_texts) if not ind in _]
+    list_tag_ud = [i for ind, i in enumerate(list_tag_ud) if not ind in _]
     return list_texts, TT, list_tag_ud
     
 # Union of texts
