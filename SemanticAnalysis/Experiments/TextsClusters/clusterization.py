@@ -142,15 +142,18 @@ def trivial_segmentation(path_file, model, data_dict = {}):
                 else:
                     res.append((c_next[0], d_next))
         return res
-    def segmentation(full_list_centers, sentences, res):
+    def segmentation(full_list_centers, sentences, res, full_list):
         prev = None
         cur_text = ''
         cur_item = None
         list_texts = list()
+        TU = list()
         TT = list()
+        list_tag_ud = list()
         for ind, i in enumerate(res):
             if i[0] == prev:
                 cur_text = cur_text + sentences[ind][1]
+                TU.append(full_list[ind][1])
                 if not np.isnan(full_list_centers[ind][1]).any():
                     cur_item = cur_item + full_list_centers[ind][1]
                     k += 1
@@ -160,12 +163,16 @@ def trivial_segmentation(path_file, model, data_dict = {}):
                     if not cur_item is None:
                         list_texts.append(cur_text)
                         TT.append(cur_item / k)
+                        list_tag_ud.append(TU)
+                    TU = list()
+                    TU.append(full_list[ind][1])
                     cur_text = sentences[ind][1]
                     cur_item = full_list_centers[ind][1]
                     k = 1
         list_texts.append(cur_text)
         TT.append(cur_item / k)
-        return TT, list_texts
+        list_tag_ud.append(TU)
+        return TT, list_texts, list_tag_ud
     if not path_file in data_dict.keys():
         handle = open(path_file, "r")
         text = handle.read()
@@ -179,6 +186,29 @@ def trivial_segmentation(path_file, model, data_dict = {}):
     full_list_centers = [(i[0], get_sentence_center(i[1], model)) 
         for i in full_list]
     res = nearest(full_list_centers)
-    TT, list_texts = segmentation(full_list_centers, sentences, res)
-    return list_texts, TT, new, newest, full_list, sentences
+    TT, list_texts,list_tag_ud = segmentation(full_list_centers, sentences, res, full_list)
+    return list_texts, TT, list_tag_ud
     
+# Union of texts
+def union(list_texts, texts_vectors, eps = 0.45):
+    D = [(np.linalg.norm(i - texts_vectors[ind+1]), 
+        ind, 
+        ind+1) 
+            for ind, i in enumerate(texts_vectors[:-1])]
+    D.sort(key = lambda x: x[0])
+    D = [i for i in D if i[0] <= eps]
+    union = dict()
+    for i in D:
+        union[i[1]], union[i[0]] = i[0], i[1]
+        for j in D:
+            if (j[0] in [i[1], i[2]]) or (j[1] in [i[1], i[2]]):
+                D.remove(j)
+    old_index = list()
+    for key in union.keys():
+        list_texts[key] += list_texts[union[key]]
+        texts_vectors[key] += texts_vectors[union[key]]
+        texts_vectors /= 2
+        old_index.append(union[key])
+        union.pop(union[key])
+    list_texts = [i for i in list_texts if not i in old_index]
+    return list_texts, texts_vectors
