@@ -223,4 +223,5 @@ def union(list_texts, texts_vectors, eps = 0.456):
             texts_vectors[key] /= 2
             old_index.append(union[key])
     list_texts = [i for ind,i in enumerate(list_texts) if not ind in old_index]
+    texts_vectors = [i for ind,i in enumerate(texts_vectors) if not ind in old_index]
     return list_texts, texts_vectors
