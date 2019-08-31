@@ -151,7 +151,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
         TT = list()
         list_tag_ud = list()
         for ind, i in enumerate(res):
-            if i[0] == prev:
+            if i[0] == prev and not i[0] is None:
                 cur_text = cur_text + sentences[ind][1]
                 TU.append(full_list[ind][1])
                 if not np.isnan(full_list_centers[ind][1]).any():
