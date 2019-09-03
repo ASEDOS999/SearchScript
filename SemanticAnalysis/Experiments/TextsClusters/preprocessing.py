@@ -86,7 +86,7 @@ def get_full_data():
 		cur_list = [(i, texts_vectors[ind], cur_marks[ind])
 			for ind, i in enumerate(list_texts)]
 		res.append(cur_list)
-	with open('marking_texts.pickle', 'wb') as f:
+	with open('MarkedTexts.pickle', 'wb') as f:
 		pickle.dump(res, f)
 		f.close()
 	return res
