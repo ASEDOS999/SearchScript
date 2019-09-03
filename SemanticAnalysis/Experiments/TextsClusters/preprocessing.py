@@ -3,6 +3,8 @@ import sys
 import clusterization
 import os
 
+# DICT OF TAG_UD
+
 def preproc_one_text(path_file, model):
 	handle = open(path_file, "r")
 	text = handle.read()
@@ -32,12 +34,32 @@ def transform_list(list_files, model):
 			f.close()
 	return data_dict
 
-"""
-if __name__ == '__main__':
-	path = '../../../Texts/'
-	list_files = [path+i for i in os.listdir(path) if '.txt' in i and '2_' in i]
-	import gensim
-	model = gensim.models.KeyedVectors.load_word2vec_format('../../model.bin', binary=True) 
-	model.init_sims(replace=True)
-	transform_list(list_files, model)
-"""
+# EXTRACTING MARKS
+
+def extract(path_file):
+	try:
+		f = open(path_file, 'r')
+	except Exception:
+		return None
+	res = list()
+	for i in f.readlines():
+		if 'NEW SEGMENT' in i:
+			try:
+				mark = float(i[len('**NEW SEGMENT**'):])
+			except Exception:
+				print(path_file, i[len('**NEW SEGMENT**'):])
+				mark = None
+			res.append(mark)
+	f.close()
+	return res
+
+def full_extracting(path = 'MarkedTexts/'):
+	d = dict()
+	for i in os.listdir(path):
+		if '.md' in i:
+			res = extract(path+i)
+			d[i.split('.')[0]] = res
+	with open(path+'Marks.pickle', 'wb') as f:
+		pickle.dump(d, f)
+		f.close()
+	return d
