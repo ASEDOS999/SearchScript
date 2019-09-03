@@ -2,6 +2,7 @@ import pickle
 import sys
 import clusterization
 import os
+import gensim
 
 # DICT OF TAG_UD
 
@@ -63,3 +64,30 @@ def full_extracting(path = 'MarkedTexts/'):
 		pickle.dump(d, f)
 		f.close()
 	return d
+
+# FULL DATA
+
+def get_full_data():
+	with open('data_dict.pickle', 'rb') as f:
+		d = pickle.load(f)
+		f.close()
+	with open('MarkedTexts/Marks.pickle', 'rb') as f:
+		marks = pickle.load(f)
+		f.close()
+	list_files = list(d.keys())
+	model = gensim.models.KeyedVectors.load_word2vec_format('../../model.bin', binary=True) 
+	model.init_sims(replace=True)
+	res = list()
+	for i in list_files:
+		list_texts, TT, TagUd = clusterization.trivial_segmentation(i, model, d)
+		list_texts, texts_vectors = clusterization.union(list_texts, TT)
+		key = i.split('/')[-1].split('.')[0]
+		cur_marks = marks[key]
+		cur_list = [(i, texts_vectors[ind], cur_marks[ind])
+			for ind, i in enumerate(list_texts)]
+		res.append(cur_list)
+	with open('marking_texts.pickle', 'wb') as f:
+		pickle.dump(res, f)
+		f.close()
+	return res
+		
