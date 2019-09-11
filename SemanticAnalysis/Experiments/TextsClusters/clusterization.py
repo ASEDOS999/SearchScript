@@ -162,7 +162,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
                     prev = i[0]
                     if not cur_item is None:
                         list_texts.append(cur_text)
-                        TT.append(cur_item / k)
+                        TT.append(cur_item)
                         list_tag_ud.append(TU)
                     TU = list()
                     TU.append(full_list[ind][1])
@@ -170,7 +170,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
                     cur_item = full_list_centers[ind][1]
                     k = 1
         list_texts.append(cur_text)
-        TT.append(cur_item / k)
+        TT.append(cur_item)
         list_tag_ud.append(TU)
         return TT, list_texts, list_tag_ud
     if not path_file in data_dict.keys():
@@ -220,7 +220,6 @@ def union(list_texts, texts_vectors, TagUd, eps = 0.456):
         if not key in old_index:
             list_texts[key] += list_texts[union[key]]
             texts_vectors[key] += texts_vectors[union[key]]
-            texts_vectors[key] /= 2
             TagUd[key].append(TagUd[union[key]])
             old_index.append(union[key])
     list_texts = [i for ind,i in enumerate(list_texts) if not ind in old_index]
