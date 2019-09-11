@@ -201,7 +201,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
     return list_texts, TT, list_tag_ud
     
 # Union of texts
-def union(list_texts, texts_vectors, eps = 0.456):
+def union(list_texts, texts_vectors, TagUd, eps = 0.456):
     D = [(np.linalg.norm(i - texts_vectors[ind+1]), 
         ind, 
         ind+1) 
@@ -221,7 +221,9 @@ def union(list_texts, texts_vectors, eps = 0.456):
             list_texts[key] += list_texts[union[key]]
             texts_vectors[key] += texts_vectors[union[key]]
             texts_vectors[key] /= 2
+            TagUd[key].append(TagUd[union[key]])
             old_index.append(union[key])
     list_texts = [i for ind,i in enumerate(list_texts) if not ind in old_index]
     texts_vectors = [i for ind,i in enumerate(texts_vectors) if not ind in old_index]
-    return list_texts, texts_vectors
+    TagUd = [i for ind,i in enumerate(TagUd) if not ind in old_index]
+    return list_texts, texts_vectors, TagUd
