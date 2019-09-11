@@ -88,10 +88,11 @@ def get_sentence_center(sentence_tag_ud, model):
         if model.__contains__(i):
             s = s + model[i]
             k+=1
-    return s/k
+    return s
 
 def distance(a, b):
     return np.linalg.norm(a - b)
+
 
 def trivial_segmentation(path_file, model, data_dict = {}):
     def deploy_list(some_list):
