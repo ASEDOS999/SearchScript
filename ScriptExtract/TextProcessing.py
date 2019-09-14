@@ -150,7 +150,10 @@ class text_separation(text_structure):
 						'Section' : section_name,
 						'List': []
 					}
-					mark = self.PartOfList(text[list_n[j+1]: list_n[j+2]])
+					if len(list_n) > j+2:
+						mark = self.PartOfList(text[list_n[j+1]: list_n[j+2]])
+					else:
+						mark = False
 					local_section_name = None
 					while self.PartOfList(cur_text) or (not mark and prev):
 						prev = self.PartOfList(cur_text)
