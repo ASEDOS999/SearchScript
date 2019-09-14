@@ -281,7 +281,18 @@ def cond_instr(act):
 		return True
 	lemma = act.inform['VERB'][0].lemma
 	morph = act.inform['VERB'][0].morph
-	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
+	parent = act.parent
+	if parent is None:
+		p = False
+	else:
+		p = parent.value.postag in ['NOUN', 'PRON']
+	if p:
+		return False
+	subj = list()
+	for k in act.inform.keys():
+		if k in ['agent', 'xsubj', 'nsubj', 'subj']:
+			subj += act.inform[k]
+	#subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
 	if (len(subj) == 0):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):

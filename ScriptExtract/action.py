@@ -20,49 +20,52 @@ def get_tree(text):
 	from isanlp import PipelineCommon
 	from isanlp.processor_remote import ProcessorRemote
 	from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
-	
-	HOST = 'localhost'
-	proc_morph = ProcessorRemote(HOST, 3333, 'default')
-	proc_syntax = ProcessorRemote(HOST, 3334, '0')
-	
-	syntax_ppl = PipelineCommon([
-		(proc_morph,
-			['text'],
-			{'tokens' : 'tokens', 'sentences' : 'sentences', 'postag' : 'postag', 'lemma' : 'lemma'}),
-		(proc_syntax,
-			['tokens','sentences'],
-			{'syntax_dep_tree' : 'syntax_dep_tree'}),
-		(ConverterMystemToUd(),
-			['postag'],
-			{'postag' : 'postag', 'morph' : 'morph'})
-		])
-	analysis_res = syntax_ppl(text)
-	sentences = []
-	for i in analysis_res['sentences']:
-		sentence = []
-		for j in range(i.begin, i.end):
-			sentence.append(analysis_res['tokens'][j].text)
-		sentences.append(sentence)
-	vertices_list_list = []
-	for j in range(len(analysis_res['lemma'])):
-		vertices_list = []
-		for i in range(len(analysis_res['lemma'][j])):
-			vert = tree(word(analysis_res['lemma'][j][i],
-					analysis_res['postag'][j][i],
-					analysis_res['morph'][j][i],
-					i))
-			vertices_list.append(vert)
-		vertices_list_list.append(vertices_list)
-	root_list = []
-	for i in range(len(vertices_list_list)):
-		list_ = vertices_list_list[i]
-		for j in range(len(analysis_res['syntax_dep_tree'][i])):
-			_ = analysis_res['syntax_dep_tree'][i][j]
-			if _.parent != -1:
-				list_[_.parent].add_child(list_[j], _.link_name)
-			else:
-				list_[j].sentence = sentences[i]
-				root_list.append(list_[j])
+	try:
+		HOST = 'localhost'
+		proc_morph = ProcessorRemote(HOST, 3333, 'default')
+		proc_syntax = ProcessorRemote(HOST, 3334, '0')
+		
+		syntax_ppl = PipelineCommon([
+			(proc_morph,
+				['text'],
+				{'tokens' : 'tokens', 'sentences' : 'sentences', 'postag' : 'postag', 'lemma' : 'lemma'}),
+			(proc_syntax,
+				['tokens','sentences'],
+				{'syntax_dep_tree' : 'syntax_dep_tree'}),
+			(ConverterMystemToUd(),
+				['postag'],
+				{'postag' : 'postag', 'morph' : 'morph'})
+			])
+		analysis_res = syntax_ppl(text)
+		sentences = []
+		for i in analysis_res['sentences']:
+			sentence = []
+			for j in range(i.begin, i.end):
+				sentence.append(analysis_res['tokens'][j].text)
+			sentences.append(sentence)
+		vertices_list_list = []
+		for j in range(len(analysis_res['lemma'])):
+			vertices_list = []
+			for i in range(len(analysis_res['lemma'][j])):
+				vert = tree(word(analysis_res['lemma'][j][i],
+						analysis_res['postag'][j][i],
+						analysis_res['morph'][j][i],
+						i))
+				vertices_list.append(vert)
+			vertices_list_list.append(vertices_list)
+		root_list = []
+		for i in range(len(vertices_list_list)):
+			list_ = vertices_list_list[i]
+			for j in range(len(analysis_res['syntax_dep_tree'][i])):
+				_ = analysis_res['syntax_dep_tree'][i][j]
+				if _.parent != -1:
+					list_[_.parent].add_child(list_[j], _.link_name)
+				else:
+					list_[j].sentence = sentences[i]
+					root_list.append(list_[j])
+	except Exception:
+			print(text,'err')
+			root_list = []
 	return root_list
 
 def preprocessing_separation(text):
@@ -150,13 +153,14 @@ def descript_role(role):
 		return descript_dict[role]
 	return role
 class action:
-	def __init__(self, verb, sentence = None, name = None, type_action = None):
+	def __init__(self, verb, sentence = None, name = None, type_action = None, parent = None):
 		self.inform = dict()
 		self.inform['VERB'] = verb
 		self.name_action = name
 		self.sentence = sentence
 		self.type_action = type_action
 		self.section = ''
+		self.parent = parent
 	
 	def phrase(self, list_index):
 		list_index.sort()
@@ -306,7 +310,7 @@ def get_actions(root):
 		type_ = action_verb(x, parent, dependence).test()
 		if type_:
 			name = 'Action%d{%s}'%(x.value.index, x.value.lemma)
-			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name, type_action = type_)
+			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name, type_action = type_, parent = parent)
 			for i in x.kids:
 				process_type(i, x, act)
 				new_act(i[0], x, i[1])
