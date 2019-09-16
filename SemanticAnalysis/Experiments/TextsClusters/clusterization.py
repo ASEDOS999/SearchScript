@@ -98,39 +98,30 @@ def trivial_segmentation(path_file, model, table):
 	def nearest(full_list_centers):
 		c_prev, c_next = None, None
 		eps = np.inf
-		res = list()
-		for _, j in enumerate(full_list_centers):
-			if j[0] == 1:
-				c_next = (_,j)
-				break
-		for ind, i in enumerate(full_list_centers):
-			if i[0] == 1:
-				c_prev = (ind, i)
-				res.append((ind, 0.))
-				c_next = None
-				for _, j in enumerate(full_list_centers[ind+1:]):
-					if j[0] == 1:
-						c_next = (ind+1+_,j)
-						break
-			else:
-				if not c_prev is None:
-					d_prev = distance(c_prev[1][1], i[1])
-				else:
-					d_prev = 1000
-				if not c_next is None:
-					d_next = distance(c_next[1][1], i[1])
-				else:
-					d_next = 1000
-				if np.isnan([d_next]).any():
-					d_next = 1000
-				if np.isnan([d_prev]).any():
-					d_prev = 1000
-				if d_next > eps and d_prev > eps:
-					res.append((None, None))
-				elif d_next > d_prev: 
-					res.append((c_prev[0], d_prev))
-				else:
-					res.append((c_next[0], d_next))
+		res = [(None, None) for i in full_list_centers]
+		centers_list = [ind for ind,i in enumerate(full_list_centers) if i[0] == 1]
+		full_list_centers = [i[1] for i in full_list_centers]
+		for i in range(centers_list[0]+1):
+			res[i] = (centers_list[0], distance(full_list_centers[i], full_list_centers[centers_list[0]]))
+		for i in range(centers_list[-1], len(res)):
+			res[i] = (centers_list[-1], distance(full_list_centers[i], full_list_centers[centers_list[-1]]))
+		for i in centers_list:
+			res[i] = (i, 0.)
+		for ind,i in enumerate(centers_list[:-1]):
+			ind_prev, ind_next = i, centers_list[ind+1]
+			n = ind_next - ind_prev -1
+			D = list()
+			for i in range(1,n+1):
+				D.append((distance(full_list_centers[ind_prev], full_list_centers[ind_prev+i]),
+						distance(full_list_centers[ind_next], full_list_centers[ind_prev+i])))
+			loss = [0 for i in range(n+1)]
+			for eps in range(n+1):
+				loss[eps]= sum([i[0] for ind,i in enumerate(D) if ind< eps]+[i[1] for ind,i in enumerate(D) if ind>= eps])
+			eps = np.array(loss).argmin()
+			for j in range(eps):
+				res[ind_prev+j] = (ind_prev,distance(full_list_centers[ind_prev], full_list_centers[ind_prev+j]))
+			for j in range(eps, n):
+				res[ind_next+j] = (ind_prev,distance(full_list_centers[ind_next], full_list_centers[ind_prev+j]))
 		return res
 	def segmentation(full_list_centers, sentences, res, full_list):
 		prev = None
