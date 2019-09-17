@@ -119,9 +119,13 @@ def trivial_segmentation(path_file, model, table):
 				loss[eps]= sum([i[0] for ind,i in enumerate(D) if ind< eps]+[i[1] for ind,i in enumerate(D) if ind>= eps])
 			eps = np.array(loss).argmin()
 			for j in range(eps):
-				res[ind_prev+j] = (ind_prev,distance(full_list_centers[ind_prev], full_list_centers[ind_prev+j]))
+				num = ind_prev+j+1
+				res[num] = (ind_prev,
+							distance(full_list_centers[ind_prev], full_list_centers[num]))
 			for j in range(eps, n):
-				res[ind_next+j] = (ind_prev,distance(full_list_centers[ind_next], full_list_centers[ind_prev+j]))
+				num = ind_prev+j+1
+				res[num] = (ind_next,
+							distance(full_list_centers[ind_next], full_list_centers[num]))
 		return res
 	def segmentation(full_list_centers, sentences, res, full_list):
 		prev = None
@@ -134,7 +138,7 @@ def trivial_segmentation(path_file, model, table):
 		for ind, i in enumerate(res):
 			if i[0] == prev and not i[0] is None:
 				cur_text = cur_text + sentences[ind]
-				TU.append(full_list[ind])
+				TU+=full_list[ind]
 				if not np.isnan(full_list_centers[ind][1]).any():
 					cur_item = cur_item + full_list_centers[ind][1]
 					k += 1
@@ -144,15 +148,15 @@ def trivial_segmentation(path_file, model, table):
 					if not cur_item is None:
 						list_texts.append(cur_text)
 						TT.append(cur_item / k)
-						list_tag_ud+=(TU)
+						list_tag_ud.append(TU)
 					TU = list()
-					TU.append(full_list[ind])
+					TU+=full_list[ind]
 					cur_text = sentences[ind]
 					cur_item = full_list_centers[ind][1]
 					k = 1
 		list_texts.append(cur_text)
 		TT.append(cur_item / k)
-		list_tag_ud += TU
+		list_tag_ud.append(TU)
 		return TT, list_texts, list_tag_ud
 	table = [i for i in table if len(i[1]) > 0 and i[2] in [0,1]]
 	full_list_centers = [(i[2], get_sentence_center(i[1], model)) 
