@@ -179,8 +179,9 @@ def trivial_segmentation(path_file, model, table):
 	return list_texts, TT, list_tag_ud
 	
 # Union of texts
-def union(list_texts, texts_vectors, TagUd, model, eps = 1.24):
-	D = [model.wmdistance(TagUd[ind], TagUd[ind+1])
+def union(list_texts, texts_vectors, TagUd, model, eps = 1.13):
+	C1, C2 = 1, 0.1
+	D = [model.wmdistance(TagUd[ind], TagUd[ind+1]) + C1/(1+np.exp(-C2*(len([TagUd[ind]+TagUd[ind+1]))))
 			for ind, i in enumerate(texts_vectors[:-1])]
 	union_list, cur =[], [0]
 	for ind, i in enumerate(D):
