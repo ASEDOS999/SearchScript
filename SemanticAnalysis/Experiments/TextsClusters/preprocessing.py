@@ -66,11 +66,11 @@ def full_extracting(path = 'MarkedTexts/'):
 
 # FULL DATA
 
-def get_full_data():
+def get_full_data(path = 'MarkedTexts/'):
 	with open('data_dict.pickle', 'rb') as f:
 		d = pickle.load(f)
 		f.close()
-	with open('MarkedTexts/Marks.pickle', 'rb') as f:
+	with open(path  + 'Marks.pickle', 'rb') as f:
 		marks = pickle.load(f)
 		f.close()
 	list_files = list(d.keys())
