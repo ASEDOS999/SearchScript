@@ -88,10 +88,11 @@ def get_sentence_center(sentence_tag_ud, model):
         if model.__contains__(i):
             s = s + model[i]
             k+=1
-    return s/k
+    return s
 
 def distance(a, b):
     return np.linalg.norm(a - b)
+
 
 def trivial_segmentation(path_file, model, data_dict = {}):
     def deploy_list(some_list):
@@ -201,7 +202,7 @@ def trivial_segmentation(path_file, model, data_dict = {}):
     return list_texts, TT, list_tag_ud
     
 # Union of texts
-def union(list_texts, texts_vectors, eps = 0.456):
+def union(list_texts, texts_vectors, TagUd, eps = 0.456):
     D = [(np.linalg.norm(i - texts_vectors[ind+1]), 
         ind, 
         ind+1) 
@@ -221,7 +222,9 @@ def union(list_texts, texts_vectors, eps = 0.456):
             list_texts[key] += list_texts[union[key]]
             texts_vectors[key] += texts_vectors[union[key]]
             texts_vectors[key] /= 2
+            TagUd[key].append(TagUd[union[key]])
             old_index.append(union[key])
     list_texts = [i for ind,i in enumerate(list_texts) if not ind in old_index]
     texts_vectors = [i for ind,i in enumerate(texts_vectors) if not ind in old_index]
-    return list_texts, texts_vectors
+    TagUd = [i for ind,i in enumerate(TagUd) if not ind in old_index]
+    return list_texts, texts_vectors, TagUd

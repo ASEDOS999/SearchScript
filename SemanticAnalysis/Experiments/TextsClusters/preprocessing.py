@@ -80,10 +80,10 @@ def get_full_data():
 	res = list()
 	for i in list_files:
 		list_texts, TT, TagUd = clusterization.trivial_segmentation(i, model, d)
-		list_texts, texts_vectors = clusterization.union(list_texts, TT)
+		list_texts, texts_vectors, TagUd = clusterization.union(list_texts, TT, TagUd)
 		key = i.split('/')[-1].split('.')[0]
 		cur_marks = marks[key]
-		cur_list = [(i, texts_vectors[ind], cur_marks[ind])
+		cur_list = [(i, texts_vectors[ind], cur_marks[ind], TagUd[ind])
 			for ind, i in enumerate(list_texts)]
 		res.append(cur_list)
 	with open('MarkedTexts.pickle', 'wb') as f:
