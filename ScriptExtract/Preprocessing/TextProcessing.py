@@ -108,8 +108,19 @@ class text_separation():
 						j += 1
 		return results
 
+	def get_advanced_structure(self):
+		str = self.get_structure(self.text)
+		list_indexes = list()
+		for ind, i in enumerate(str[:-1]):
+			if str[ind+1]['Type'] == 'list':
+				str[ind]['Text'] += str[ind+1]['Text']
+				str[ind]['Sentences'][-1] += str[ind+1]['Text']
+				list_indexes.append(ind+1)
+		str = [i for ind,i in enumerate(str) if not ind in list_indexes]
+		return str
+
 	def get_list_of_tree(self):
-		self.structure = text_separation(text),get_structure()
+		self.structure = self.get_structure()
 		for i in self.structure:
 			i['Synt tree'] = root_list
 		# Transform syntactic tree to action tree
