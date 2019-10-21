@@ -1,10 +1,12 @@
 import action
 
 class text_separation():
-	def __init__(self, text):
+	def __init__(self, text, base_preproc = True):
 		self.text = text
+		if base_preproc:
+			self.text, sites = self.find_site(text)
 
-	def find_cite(text):
+	def find_site(self, text):
 		segm = [i.split(' ') for i in text.split('\n')]
 		sites = list()
 		for ind_p, p in enumerate(segm):
@@ -135,7 +137,6 @@ class text_separation():
 	def get_list_of_tree(self):
 		self.structure = self.get_structure()
 		for i in self.structure:
-			print('TEXT', i['Text'])
 			root_list = action.construct_tree(i['Text'])
 			i['Synt tree'] = root_list
 		# Transform syntactic tree to action tree
@@ -143,7 +144,6 @@ class text_separation():
 			i['Action tree'] = []
 			for root in i['Synt tree']:
 				i['Action tree'].append(action.get_actions_tree(root))
-
 		return self.structure
 
 
