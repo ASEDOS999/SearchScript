@@ -4,6 +4,20 @@ class text_separation():
 	def __init__(self, text):
 		self.text = text
 
+	def find_cite(text):
+		segm = [i.split(' ') for i in text.split('\n')]
+		sites = list()
+		for ind_p, p in enumerate(segm):
+			for ind, word in  enumerate(p):
+				if word.count('.')>1 or ('.' in word and word[-1]!= '.'):
+					if word[-1] == '.':
+							segm[ind_p][ind] = 'САЙТ.'
+					else:
+						segm[ind_p][ind] = 'САЙТ'
+					sites.append(word)
+		text = '\n'.join([' '.join(i) for i in segm])
+		return text, sites
+
 	def PartOfList(self, cur_text, all = True):
 		def start_analyse():
 			i = 0
@@ -108,15 +122,15 @@ class text_separation():
 		return results
 
 	def get_advanced_structure(self):
-		str = self.get_structure(self.text)
+		structure = self.get_structure(self.text)
 		list_indexes = list()
-		for ind, i in enumerate(str[:-1]):
-			if str[ind+1]['Type'] == 'list':
-				str[ind]['Text'] += str[ind+1]['Text']
-				str[ind]['Sentences'][-1] += str[ind+1]['Text']
+		for ind, i in enumerate(structure[:-1]):
+			if structure[ind+1]['Type'] == 'list':
+				structure[ind]['Text'] += structure[ind+1]['Text']
+				structure[ind]['Sentences'][-1] += structure[ind+1]['Text']
 				list_indexes.append(ind+1)
-		str = [i for ind,i in enumerate(str) if not ind in list_indexes]
-		return str
+		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
+		return structure
 
 	def get_list_of_tree(self):
 		self.structure = self.get_structure()
