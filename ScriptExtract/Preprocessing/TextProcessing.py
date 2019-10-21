@@ -19,8 +19,7 @@ class text_separation():
 				i += 1
 			if i == len(cur_text):
 				return False
-			mark = mark or cur_text[i] == '.' or cur_text[i] == ')':
-
+			mark = mark or cur_text[i] == '.' or cur_text[i] == ')'
 			return mark
 		def end_analyse():
 			i = len(cur_text) - 1
@@ -85,7 +84,7 @@ class text_separation():
 			if list_n[j] != list_n[j + 1]:
 				if self.PartOfList(cur_text):
 					res = list()
-					while PartOfList(cur_text):
+					while self.PartOfList(cur_text):
 						res.append(cur_text)
 						cur_text = text[list_n[j] : list_n[j+1]]
 						j += 1
@@ -98,14 +97,14 @@ class text_separation():
 					results.append(item)
 				else:
 					list_sentence = self.separate_to_sentence(cur_text)
-						item = {
-							'Type' : 'paragraph',
-							'Section' : section_name,
-							'Text' : cur_text,
-							'Sentences' : list_sentence
-						}
-						results.append(item)
-						j += 1
+					item = {
+						'Type' : 'paragraph',
+						'Section' : section_name,
+						'Text' : cur_text,
+						'Sentences' : list_sentence
+					}
+					results.append(item)
+					j += 1
 		return results
 
 	def get_advanced_structure(self):
@@ -122,6 +121,8 @@ class text_separation():
 	def get_list_of_tree(self):
 		self.structure = self.get_structure()
 		for i in self.structure:
+			print('TEXT', i['Text'])
+			root_list = action.construct_tree(i['Text'])
 			i['Synt tree'] = root_list
 		# Transform syntactic tree to action tree
 		for i in self.structure:
@@ -129,7 +130,7 @@ class text_separation():
 			for root in i['Synt tree']:
 				i['Action tree'].append(action.get_actions_tree(root))
 
-
+		return self.structure
 
 
 
