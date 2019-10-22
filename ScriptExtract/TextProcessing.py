@@ -150,7 +150,10 @@ class text_separation(text_structure):
 						'Section' : section_name,
 						'List': []
 					}
-					mark = self.PartOfList(text[list_n[j+1]: list_n[j+2]])
+					if len(list_n) > j+2:
+						mark = self.PartOfList(text[list_n[j+1]: list_n[j+2]])
+					else:
+						mark = False
 					local_section_name = None
 					while self.PartOfList(cur_text) or (not mark and prev):
 						prev = self.PartOfList(cur_text)
@@ -281,7 +284,18 @@ def cond_instr(act):
 		return True
 	lemma = act.inform['VERB'][0].lemma
 	morph = act.inform['VERB'][0].morph
-	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
+	parent = act.parent
+	if parent is None:
+		p = False
+	else:
+		p = parent.value.postag in ['NOUN', 'PRON']
+	if p:
+		return False
+	subj = list()
+	for k in act.inform.keys():
+		if k in ['agent', 'xsubj', 'nsubj', 'subj']:
+			subj += act.inform[k]
+	#subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
 	if (len(subj) == 0):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):

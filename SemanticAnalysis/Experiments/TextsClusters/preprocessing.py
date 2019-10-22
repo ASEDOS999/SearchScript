@@ -14,7 +14,6 @@ def preproc_one_text(path_file, model):
 	newest = clusterization.list2tag_ud(new, model)
 	return text, new, newest
 
-from time import sleep
 def transform_list(list_files, model):
 	if 'data_dict.pickle' in os.listdir():
 		with open('data_dict.pickle', 'rb') as f:
@@ -67,11 +66,11 @@ def full_extracting(path = 'MarkedTexts/'):
 
 # FULL DATA
 
-def get_full_data():
+def get_full_data(path = 'MarkedTexts/'):
 	with open('data_dict.pickle', 'rb') as f:
 		d = pickle.load(f)
 		f.close()
-	with open('MarkedTexts/Marks.pickle', 'rb') as f:
+	with open(path  + 'Marks.pickle', 'rb') as f:
 		marks = pickle.load(f)
 		f.close()
 	list_files = list(d.keys())
@@ -83,6 +82,7 @@ def get_full_data():
 		list_texts, texts_vectors, TagUd = clusterization.union(list_texts, TT, TagUd)
 		key = i.split('/')[-1].split('.')[0]
 		cur_marks = marks[key]
+		print(len(texts_vectors))
 		cur_list = [(i, texts_vectors[ind], cur_marks[ind], TagUd[ind])
 			for ind, i in enumerate(list_texts)]
 		res.append(cur_list)
