@@ -123,19 +123,37 @@ class text_separation():
 					j += 1
 		return results
 
+	def remove_markers(self, text):
+		i = 0
+		# Trash spaces
+		while i < len(text) and text[i] == ' ':
+			i+= 1
+		if i == len(text):
+			return False
+		# Bulleted List
+		if text[i] in ['*']:
+			return text[i+1:]
+		# Numbered list
+		while i < len(text) and text[i].isnumeric():
+			i += 1
+		return text[i+1:]
+				
 	def get_advanced_structure(self):
-		structure = self.get_structure(self.text)
+		structure = self.get_structure()
 		list_indexes = list()
 		for ind, i in enumerate(structure[:-1]):
 			if structure[ind+1]['Type'] == 'list':
-				structure[ind]['Text'] += structure[ind+1]['Text']
-				structure[ind]['Sentences'][-1] += structure[ind+1]['Text']
+				text = structure[ind+1]['Elements']
+				res = list()
+				for i in text:
+					res.append(self.remove_markers(i))
+				structure[ind]['Text'] += ' '.join(res)
 				list_indexes.append(ind+1)
 		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
 		return structure
 
 	def get_list_of_tree(self):
-		self.structure = self.get_structure()
+		self.structure = self.get_advanced_structure()
 		for i in self.structure:
 			root_list = action.construct_tree(i['Text'])
 			i['Synt tree'] = root_list
