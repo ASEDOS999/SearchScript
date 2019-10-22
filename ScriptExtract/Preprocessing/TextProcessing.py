@@ -20,7 +20,7 @@ class text_separation():
 		text = '\n'.join([' '.join(i) for i in segm])
 		return text, sites
 
-	def PartOfList(self, cur_text, all = True):
+	def PartOfList(self, cur_text, all = False):
 		def start_analyse():
 			i = 0
 			# Trash spaces
@@ -49,9 +49,9 @@ class text_separation():
 		def one_sent():
 			list_end = ['!', '.', '?']
 			indexes = [0] + [ind for ind, i in enumerate(cur_text) if i in list_end]
-			sentences = [cur_text[i, indexes[ind+1]] for ind,i in enumerate(indexes[-1])]
-			sentences = [i for i in sentences if not i.isnumeric(i)]
-			return len(sentences) > 1
+			sentences = [cur_text[i:indexes[ind+1]] for ind,i in enumerate(indexes[:-1])]
+			sentences = [i for i in sentences if not i.isnumeric()]
+			return not len(sentences) > 1
 		return (end_analyse() or start_analyse()) and (all or one_sent())
 
 	def separate_to_paragraphes(self):
@@ -102,8 +102,8 @@ class text_separation():
 					res = list()
 					while self.PartOfList(cur_text):
 						res.append(cur_text)
-						cur_text = text[list_n[j] : list_n[j+1]]
 						j += 1
+						cur_text = text[list_n[j] : list_n[j+1]]
 					item = {
 						'Type' : 'list',
 						'Elements':res,
@@ -146,8 +146,57 @@ class text_separation():
 				i['Action tree'].append(action.get_actions_tree(root))
 		return self.structure
 
+class table:
+	def get_table(self, list_files):
+		l = len(list_files)
+		if 'table.pickle' in os.listdir():
+			with open('table.pickle', 'rb') as f:
+				table = pickle.load(f)
+				f.close()
+		else:
+			table = dict()
+		list_files = [i for i in list_files if not i in table]
+		keys = [i.split('/')[-1] for i in list_files if not i.split('/')[-1] in table]
+		texts = dict()
+		for i in list_files:
+			f = open(i, 'r')
+			texts[i.split('/')[-1]] = f.read()
+			f.close()
+		texts = {key:find_cite(texts[key])[0] for key in texts}
+		texts = {key:splitting_text(texts[key]) for key in texts}
 
-
+		for key in keys:
+			print(key)
+			table[key], t = self.extract_one(texts[key])
+			print('Time',t/60, 'min')
+			print('Processed: %d/%d'%(len(table.keys()), l))
+			with open('table.pickle', 'wb') as f:
+				pickle.dump(res, f)
+				f.close()
+		return table
+		
+	def extract_one(self, text):
+		s = time.time()
+		res = list()
+		for sent in text:
+			list_ = GC(sent).get_list()
+			new_list = list()
+			for i in list_:
+				if not i.__contains__('Type') or i['Type'] == 'paragraph':
+					_ = list()
+					for j in i['Action tree']:
+						_ = _ + RAT(j)
+					# ONE NEEDS MODIFICATION THERE
+					instr_sentence = [act.sentence for act in _]
+			is_instr = 0
+			if len(instr_sentence) > 0 and sent[-1]!= '?':
+				is_instr = 1
+			try:
+				sent_tag_ud = sa.tag_ud(sent)
+			except Exception:
+				sent_tag_ud = list()
+			res.append((sent, sent_tag_ud, is_instr))
+		return res, time.time()-s 
 
 
 
@@ -212,171 +261,3 @@ def research_action_tree(root, test = instructions, list_ = None):
 	for i in root.kids:
 		list_ = research_action_tree(i[0], test, list_)
 	return list_
-
-from collections import OrderedDict
-def research_list(list_tree, test = instructions):
-	result = OrderedDict()
-	for i in list_tree:
-		if i['Type'] == 'paragraph':
-			new_list = []
-			for root in i['Action tree']:
-				new_list = new_list + research_action_tree(root, test)
-			if not result.__contains__(i['Section']):
-				result[i['Section']] = []
-			result[i['Section']].append({
-					'Type':'paragraph', 
-					'Action List' : new_list.copy()
-					})
-		if i['Type'] == 'list':
-			cur = OrderedDict()
-			for k in i['List']:
-				new_list = []
-				for root in k['Action tree']:
-					new_list = new_list + research_action_tree(root, test)
-				if not cur.__contains__(k['Section']):
-					cur[k['Section']] = []
-				cur[k['Section']].append(new_list.copy())
-			if not result.__contains__(i['Section']):
-				result[i['Section']] = []
-			result[i['Section']].append({
-					'Type':'list', 
-					'Action List' : cur.copy()
-					})
-	return result
-
-
-def show(result):
-	ret = []
-	result = research_list(result)
-	for i in result.keys():
-		print('\n\nSection', i)
-		for j in result[i]:
-			if j['Type'] == 'paragraph':
-				for act in j['Action List']:
-					print('Action', act.name_action)
-					print('Sentence', CS(act.sentence))
-			if j['Type'] == 'list':
-				for key in j['Action List'].keys():
-					print('\nSection list', key)
-					for list_ in j['Action List'][key]:
-						for act in list_:
-							print('Action', act.name_action)
-							print('Sentence', CS(act.sentence))
-
-def get_file(result, name_file = 'out.md'):
-	f = open(name_file, 'w')
-	ret = []
-	result = research_list(result)
-	for i in result.keys():
-		if not i is None:
-			f.write('# Section ' + i)
-		for j in result[i]:
-			if j['Type'] == 'paragraph':
-				for act in j['Action List']:
-					f.write('\n\n**' + act.name_action + '**')
-					f.write('\n\n*Sentence* ' + CS(act.sentence))
-			if j['Type'] == 'list':
-				f.write('\n\n## Start Of List')
-				for key in j['Action List'].keys():
-					f.write('\n\n * **Section list** ' + key)
-					for list_ in j['Action List'][key]:
-						for act in list_:
-							f.write('\n\n**' + act.name_action + '**')
-							f.write('\n\n*Sentence*' + CS(act.sentence))
-				f.write('\n\n## End Of List')
-		f.write('\n'*5)
-
-def print_attributes(f, act):
-	f.write('\n\n**' + act.name_action + '**')
-	dict_ = act.get_inform(False, True, False)[0]
-	keys = list(dict_.keys())
-	keys.sort()
-	for i in keys:
-		f.write('\n\n' + descript_role(i).upper())
-		if i != 'VERB':
-			for j in dict_[i]:
-				f.write('\n\n--' + j)
-		else:
-			f.write('\n\n--' + dict_[i])
-
-from action import descript_role
-def get_file_attributes(result, name_file = 'out.md'):
-	f = open(name_file, 'w')
-	ret = []
-	result = research_list(result)
-	for i in result.keys():
-		if not i is None:
-			f.write('# Section ' + i)
-		for j in result[i]:
-			if j['Type'] == 'paragraph':
-				for act in j['Action List']:
-					f.write('\n\n**' + act.name_action + '**')
-					f.write('\n\n*Sentence* ' + CS(act.sentence))
-					print_attributes(f, act)
-			if j['Type'] == 'list':
-				f.write('\n\n## Start Of List')
-				for key in j['Action List'].keys():
-					f.write('\n\n * **Section list** ' + key)
-					for list_ in j['Action List'][key]:
-						for act in list_:
-							f.write('\n\n**' + act.name_action + '**')
-							f.write('\n\n*Sentence*' + CS(act.sentence))
-							print_attributes(f, act)
-
-def get_file(result, name_file = 'out.md'):
-	f = open(name_file, 'w')
-	ret = []
-	result = research_list(result)
-	for i in result.keys():
-		if not i is None:
-			f.write('# Section ' + i)
-		for j in result[i]:
-			if j['Type'] == 'paragraph':
-				for act in j['Action List']:
-					f.write('\n\n**' + act.name_action + '**')
-					f.write('\n\n*Sentence* ' + CS(act.sentence))
-			if j['Type'] == 'list':
-				f.write('\n\n## Start Of List')
-				for key in j['Action List'].keys():
-					f.write('\n\n * **Section list** ' + key)
-					for list_ in j['Action List'][key]:
-						for act in list_:
-							f.write('\n\n**' + act.name_action + '**')
-							f.write('\n\n*Sentence*' + CS(act.sentence))
-				f.write('\n\n## End Of List')
-		f.write('\n'*5)
-import pickle
-def get_file_actions_inform(result, name_file = 'data.pickle'):
-	def extract(act):
-		inform = act.inform
-		sent = act.sentence
-		s = str()
-		dict_ = dict()
-		for key in act.inform.keys():
-			s = str()
-			if key == 'VERB':
-				for i in act.inform[key][1]:
-					s += ' ' + sent[i]
-				dict_[key] = s
-			else:
-				dict_[key] = list()
-				for j in act.inform[key]:
-					s= str()
-					for i in j[1]:
-						s += ' ' + sent[i]
-					dict_[key].append(s)
-		return (dict_, CS(sent))
-	f = open(name_file, 'w')
-	ret = []
-	result = research_list(result)
-	for i in result.keys():
-		for j in result[i]:
-			if j['Type'] == 'paragraph':
-				ret = ret + [extract(act) for act in j['Action List']]
-			if j['Type'] == 'list':
-				for key in j['Action List'].keys():
-					for list_ in j['Action List'][key]:
-						ret = ret + [extract(act) for act in list_]
-	with open(name_file, 'wb') as f:
-		pickle.dump(ret, f)
-		f.close()
