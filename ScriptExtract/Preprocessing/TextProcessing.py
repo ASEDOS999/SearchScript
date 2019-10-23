@@ -1,5 +1,5 @@
 #import action
-
+from . import action
 class text_separation():
 	def __init__(self, text, base_preproc = True):
 		self.text = text
@@ -79,7 +79,7 @@ class text_separation():
 		N = 0
 		num_sent = 0
 		for i in range(len(cur_text)):
-			if cur_text[i] in ['.', '!', '?', '\n']:
+			if cur_text[i] in ['.', '!', '?']:
 				last = i
 				if i + 2 < len(cur_text) and cur_text[i:i+2] == '...':
 					last = i + 2
@@ -149,7 +149,7 @@ class text_separation():
 					res.append(self.remove_markers(i))
 				add = ' '.join(res)
 				structure[ind]['Text'] += add
-				structure[ind]['Sentences'][-1] += add
+				structure[ind]['Sentences'][-1] += len(add)
 				list_indexes.append(ind+1)
 		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
 		return structure
@@ -170,6 +170,7 @@ class text_separation():
 import sys
 #sys.path.append('~/Desktop/PROJECTS/SearchScript/ScriptExtract/SemanticAnalysis')
 #import sem_analysis as sa
+from ..SemanticAnalysis import sem_analysis as sa
 class table:
 	def get_table(self, list_files):
 		l = len(list_files)
