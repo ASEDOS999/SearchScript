@@ -231,13 +231,10 @@ class table:
 					for ind,j in enumerate(end[:-1])]
 		for sent in new_text:
 			new_list = list()
-			_ = list()
-			for j in i['Action tree']:
-				_ = _ + RAT(j)
-			# ONE NEEDS MODIFICATION THERE
+			_ = RAT(sent['Action tree'])
 			instr_sentence = [act.sentence for act in _]
 			is_instr = 0
-			if len(instr_sentence) > 0 and sent[-1]!= '?':
+			if len(instr_sentence) > 0 and sent['Sent'][-1]!= '?':
 				is_instr = 1
 			try:
 				sent_tag_ud = sa.tag_ud(sent['Sent'])
