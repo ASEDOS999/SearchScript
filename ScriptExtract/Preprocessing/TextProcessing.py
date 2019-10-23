@@ -1,5 +1,6 @@
 #import action
 from . import action
+from string import punctuation as punct
 class text_separation():
 	def __init__(self, text, base_preproc = True):
 		self.text = text
@@ -39,20 +40,29 @@ class text_separation():
 			return mark
 		def end_analyse():
 			i = len(cur_text) - 1
-			while i > -1 and cur_text[i] == ' ':
+			while i > -1 and cur_text[i] in ' \n':
 				i -= 1
 			if i == -1:
 				return False
-			if cur_text[i] in [';', ',']:
-				return True
-			return False
+			return  not cur_text[i] in '.?!'
 		def one_sent():
 			list_end = ['!', '.', '?']
 			indexes = [0] + [ind for ind, i in enumerate(cur_text) if i in list_end]
+			if len(indexes) == 1:
+				return True
+			if indexes[-1] != len(cur_text)-1:
+				indexes += [len(cur_text)]
 			sentences = [cur_text[i:indexes[ind+1]] for ind,i in enumerate(indexes[:-1])]
 			sentences = [i for i in sentences if not i.isnumeric()]
-			return not len(sentences) > 1
-		return (end_analyse() or start_analyse()) and (all or one_sent())
+			k = 0
+			for i in sentences:
+				mark = False
+				for j in i:
+					mark = mark or j.isalpha()
+				if mark:
+					k += 1
+			return not k > 1
+		return (end_analyse() and start_analyse()) and (all or one_sent())
 
 	def separate_to_paragraphes(self):
 		text = self.text
@@ -78,6 +88,12 @@ class text_separation():
 		list_ = []
 		N = 0
 		num_sent = 0
+		i = cur_text[-1]
+		ind = len(cur_text)-1
+		while not (i.isnumeric() or i.isalpha() or i in punct):
+			ind -= 1
+			i = cur_text[ind]
+		cur_text = cur_text[:ind+1]
 		for i in range(len(cur_text)):
 			if cur_text[i] in ['.', '!', '?']:
 				last = i
@@ -86,7 +102,9 @@ class text_separation():
 					i += 2
 				list_.append(last+1)
 				num_sent += 1
-		list_.append(len(cur_text) + 1)
+		list_.append(len(cur_text))
+		if len(list_) > 1 and list_[-1] == list_[-2]:
+			list_ = list_[:-1]
 		return list_
 
 	def get_structure(self):
@@ -100,7 +118,7 @@ class text_separation():
 			if list_n[j] != list_n[j + 1]:
 				if self.PartOfList(cur_text):
 					res = list()
-					while self.PartOfList(cur_text):
+					while self.PartOfList(cur_text) and j + 2 < len(list_n):
 						res.append(cur_text)
 						j += 1
 						cur_text = text[list_n[j] : list_n[j+1]]
@@ -151,6 +169,8 @@ class text_separation():
 				structure[ind]['Text'] += add
 				structure[ind]['Sentences'][-1] += len(add)
 				list_indexes.append(ind+1)
+		for i in structure:
+			i['Text'] = ''.join([j for j in i['Text'] if j!='\n'])
 		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
 		return structure
 
@@ -171,6 +191,7 @@ import sys
 #sys.path.append('~/Desktop/PROJECTS/SearchScript/ScriptExtract/SemanticAnalysis')
 #import sem_analysis as sa
 from ..SemanticAnalysis import sem_analysis as sa
+import time
 class table:
 	def get_table(self, list_files):
 		l = len(list_files)
@@ -202,16 +223,20 @@ class table:
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
-		for sent in text:
-			list_ = GC(sent).get_list_of_tree()
+		new_text = []
+		list_ = text_separation(sent).get_list_of_tree()
+		for i in list_:
+			end = list_['Sentences']
+			new_text += [{'Sent':i['Text'][i:end[ind]], 'Action tree' : i['Action Tree']} 
+					for ind,i in enumerate([0] + end[:-1])]
+			
+		for sent in new_text:
 			new_list = list()
-			for i in list_:
-				if not i.__contains__('Type') or i['Type'] == 'paragraph':
-					_ = list()
-					for j in i['Action tree']:
-						_ = _ + RAT(j)
-					# ONE NEEDS MODIFICATION THERE
-					instr_sentence = [act.sentence for act in _]
+			_ = list()
+			for j in i['Action tree']:
+				_ = _ + RAT(j)
+			# ONE NEEDS MODIFICATION THERE
+			instr_sentence = [act.sentence for act in _]
 			is_instr = 0
 			if len(instr_sentence) > 0 and sent[-1]!= '?':
 				is_instr = 1
