@@ -224,12 +224,11 @@ class table:
 		s = time.time()
 		res = list()
 		new_text = []
-		list_ = text_separation(sent).get_list_of_tree()
+		list_ = text_separation(text).get_list_of_tree()
 		for i in list_:
-			end = list_['Sentences']
-			new_text += [{'Sent':i['Text'][i:end[ind]], 'Action tree' : i['Action Tree']} 
-					for ind,i in enumerate([0] + end[:-1])]
-			
+			end = [0] + i['Sentences']
+			new_text += [{'Sent':i['Text'][j:end[ind+1]], 'Action tree' : i['Action tree'][ind]} 
+					for ind,j in enumerate(end[:-1])]
 		for sent in new_text:
 			new_list = list()
 			_ = list()
@@ -241,11 +240,11 @@ class table:
 			if len(instr_sentence) > 0 and sent[-1]!= '?':
 				is_instr = 1
 			try:
-				sent_tag_ud = sa.tag_ud(sent)
+				sent_tag_ud = sa.tag_ud(sent['Sent'])
 			except Exception:
 				sent_tag_ud = list()
 			elem = {
-				"Sentence" : sent,
+				"Sentence" : sent['Sent'],
 				"TagUd" : sent_tag_ud,
 				"IsInstr" : is_instr
 			}
