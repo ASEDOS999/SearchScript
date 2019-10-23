@@ -1,10 +1,10 @@
-#process = preproc.process
+from .preproc import process
 from ufal.udpipe import Model, Pipeline
 import os
 import re
 import sys
 
-def tag_ud(text, modelfile='udpipe_syntagrus.model'):
+def tag_ud(text, modelfile='./udpipe_syntagrus.model'):
 	udpipe_model_url = 'https://rusvectores.org/static/models/udpipe_syntagrus.model'
 	udpipe_filename = udpipe_model_url.split('/')[-1]
 
@@ -16,7 +16,7 @@ def tag_ud(text, modelfile='udpipe_syntagrus.model'):
 	process_pipeline = Pipeline(model, 'tokenize', Pipeline.DEFAULT, Pipeline.DEFAULT, 'conllu')
 	s = ''
 	for i in text:
-		if isalpha(i) and i == ' ':
+		if i.isalpha() or i == ' ':
 			s = s + i
 	text = s
 	output = process(process_pipeline, text=text)
