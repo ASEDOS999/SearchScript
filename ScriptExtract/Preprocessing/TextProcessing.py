@@ -1,4 +1,4 @@
-import action
+#import action
 
 class text_separation():
 	def __init__(self, text, base_preproc = True):
@@ -117,7 +117,7 @@ class text_separation():
 						'Type' : 'paragraph',
 						'Section' : section_name,
 						'Text' : cur_text,
-						'Sentences' : list_sentence
+						'Sentences' : self.separate_to_sentence(cur_text)
 					}
 					results.append(item)
 					j += 1
@@ -147,7 +147,9 @@ class text_separation():
 				res = list()
 				for i in text:
 					res.append(self.remove_markers(i))
-				structure[ind]['Text'] += ' '.join(res)
+				add = ' '.join(res)
+				structure[ind]['Text'] += add
+				structure[ind]['Sentences'][-1] += add
 				list_indexes.append(ind+1)
 		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
 		return structure
@@ -164,6 +166,10 @@ class text_separation():
 				i['Action tree'].append(action.get_actions_tree(root))
 		return self.structure
 
+
+import sys
+#sys.path.append('~/Desktop/PROJECTS/SearchScript/ScriptExtract/SemanticAnalysis')
+#import sem_analysis as sa
 class table:
 	def get_table(self, list_files):
 		l = len(list_files)
@@ -180,8 +186,6 @@ class table:
 			f = open(i, 'r')
 			texts[i.split('/')[-1]] = f.read()
 			f.close()
-		texts = {key:find_cite(texts[key])[0] for key in texts}
-		texts = {key:splitting_text(texts[key]) for key in texts}
 
 		for key in keys:
 			print(key)
@@ -194,10 +198,11 @@ class table:
 		return table
 		
 	def extract_one(self, text):
+		RAT = research_action_tree
 		s = time.time()
 		res = list()
 		for sent in text:
-			list_ = GC(sent).get_list()
+			list_ = GC(sent).get_list_of_tree()
 			new_list = list()
 			for i in list_:
 				if not i.__contains__('Type') or i['Type'] == 'paragraph':
@@ -213,7 +218,12 @@ class table:
 				sent_tag_ud = sa.tag_ud(sent)
 			except Exception:
 				sent_tag_ud = list()
-			res.append((sent, sent_tag_ud, is_instr))
+			elem = {
+				"Sentence" : sent,
+				"TagUd" : sent_tag_ud,
+				"IsInstr" : is_instr
+			}
+			res.append(elem)
 		return res, time.time()-s 
 
 
@@ -227,7 +237,7 @@ class table:
 
 
 # Different conditions for FAT's DFS
-from action import construct_sentence as CS
+from .action import construct_sentence as CS
 
 # Test for roots
 def start_proc(act):
