@@ -1,6 +1,11 @@
-#import action
 from . import action
 from string import punctuation as punct
+from .action import construct_sentence as CS
+import time
+import sys
+from ..SemanticAnalysis import sem_analysis as sa
+import time
+
 class text_separation():
 	def __init__(self, text, base_preproc = True):
 		self.text = text
@@ -187,11 +192,6 @@ class text_separation():
 		return self.structure
 
 
-import sys
-#sys.path.append('~/Desktop/PROJECTS/SearchScript/ScriptExtract/SemanticAnalysis')
-#import sem_analysis as sa
-from ..SemanticAnalysis import sem_analysis as sa
-import time
 class table:
 	def get_table(self, list_files):
 		l = len(list_files)
@@ -250,19 +250,6 @@ class table:
 			}
 			res.append(elem)
 		return res, time.time()-s 
-
-
-
-
-
-
-
-
-
-
-
-# Different conditions for FAT's DFS
-from .action import construct_sentence as CS
 
 # Test for roots
 def start_proc(act):
