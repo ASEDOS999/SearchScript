@@ -150,14 +150,15 @@ def descript_role(role):
 		return descript_dict[role]
 	return role
 class action:
-	def __init__(self, verb, sentence = None, name = None, type_action = None):
+	def __init__(self, verb, sentence = None, name = None, synt_tree = None, type_action = None):
 		self.inform = dict()
 		self.inform['VERB'] = verb
 		self.name_action = name
 		self.sentence = sentence
 		self.type_action = type_action
 		self.section = ''
-	
+		self.synt_tree = synt_tree
+
 	def phrase(self, list_index):
 		list_index.sort()
 		list_word = [self.sentence[i] for i in list_index]
@@ -302,11 +303,11 @@ def get_actions(root):
 	all_actions = []
 	sentence = root.sentence
 	
-	def new_act(x, parent, dependence):
+	def new_act(x, parent, dependence, root = root):
 		type_ = action_verb(x, parent, dependence).test()
 		if type_:
 			name = 'Action%d{%s}'%(x.value.index, x.value.lemma)
-			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name, type_action = type_)
+			act = action(verb = (x.value, [x.value.index], None),  sentence = sentence, name = name, synt_tree = root, type_action = type_)
 			for i in x.kids:
 				process_type(i, x, act)
 				new_act(i[0], x, i[1])
