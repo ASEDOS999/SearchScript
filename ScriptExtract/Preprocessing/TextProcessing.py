@@ -237,7 +237,8 @@ class table:
 			if len(instr_sentence) > 0 and sent['Sent'][-1]!= '?':
 				is_instr = 1
 			try:
-				sent_tag_ud = sa.tag_ud(sent['Sent'])
+				sent_tag_ud = list()
+				#sent_tag_ud = sa.tag_ud(sent['Sent'])
 			except Exception:
 				sent_tag_ud = list()
 			elem = {
@@ -271,6 +272,9 @@ def cond_instr(act):
 	lemma = act.inform['VERB'][0].lemma
 	morph = act.inform['VERB'][0].morph
 	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
+	if (morph.__contains__('Person') and morph['Person'] == '3' and 
+	morph.__contains__('Number') and morph['Number'] == 'Sing'):
+		return True
 	if (len(subj) == 0):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):
