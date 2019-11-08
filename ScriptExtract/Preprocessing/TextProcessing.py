@@ -95,7 +95,7 @@ class text_separation():
 		num_sent = 0
 		i = cur_text[-1]
 		ind = len(cur_text)-1
-		while not (i.isnumeric() or i.isalpha() or i in punct):
+		while not (i.isnumeric() or i.isalpha() or i in punct) and ind > 0:
 			ind -= 1
 			i = cur_text[ind]
 		cur_text = cur_text[:ind+1]
