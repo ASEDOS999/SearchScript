@@ -227,8 +227,11 @@ class table:
 		list_ = text_separation(text).get_list_of_tree()
 		for i in list_:
 			end = [0] + i['Sentences']
-			new_text += [{'Sent':i['Text'][j:end[ind+1]], 'Action tree' : i['Action tree'][ind]} 
-					for ind,j in enumerate(end[:-1])]
+			try:
+				new_text += [{'Sent':i['Text'][j:end[ind+1]], 'Action tree' : i['Action tree'][ind]} 
+						for ind,j in enumerate(end[:-1])]
+			except:
+				None
 		for sent in new_text:
 			new_list = list()
 			_ = RAT(sent['Action tree'])
