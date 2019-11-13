@@ -193,7 +193,7 @@ class action_verb():
 	def __init__(self, x, parent = None, dependence = None, with_participle = True):
 		self.x, self.parent, self.dependence = x, parent, dependence
 		self.with_participle = with_participle
-	
+
 	def is_verb(self):
 		return self.x.value.postag == 'VERB'
 	
@@ -232,16 +232,22 @@ class action_verb():
 			return False
 		if self.is_infin():
 			if self.process_infin():
+				for i in self.parent.kids:
+					if i[1] in ['agent', 'xsubj', 'nsubj', 'subj']:
+						return 'Modal1'
 				return 'Modal'
 			else:
 				return False
 		if self.is_indicative():
 			return 'Indicative'
 		if self.is_imperative():
+			print('hi2')
 			return 'Imperative'
 		if self.is_advparticiple():
+			print('hi3')
 			return 'Adv_Participle'
 		if self.with_participle and self.is_participle():
+			print('hi4')
 			return 'Participle'
 		return 'Verb'
 
@@ -302,7 +308,6 @@ def get_inform_parent(parent, dependence, act, x = None):
 def get_actions(root):
 	all_actions = []
 	sentence = root.sentence
-	
 	def new_act(x, parent, dependence, root = root):
 		type_ = action_verb(x, parent, dependence).test()
 		if type_:
