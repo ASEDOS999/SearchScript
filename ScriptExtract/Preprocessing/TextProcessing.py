@@ -144,7 +144,22 @@ class text_separation():
 					}
 					results.append(item)
 					j += 1
-		return results
+		list_indexes = list()
+		structure = results
+		for ind, i in enumerate(structure[:-1]):
+			if structure[ind+1]['Type'] == 'list':
+				text = structure[ind+1]['Elements']
+				res = list()
+				for i in text:
+					res.append(self.remove_markers(i))
+				add = ' '.join(res)
+				structure[ind]['Text'] += add
+				structure[ind]['Sentences'][-1] += len(add)
+				list_indexes.append(ind+1)
+		for i in structure:
+			i['Text'] = ''.join([j for j in i['Text'] if j!='\n'])
+		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
+		return structure
 
 	def remove_markers(self, text):
 		i = 0
@@ -161,26 +176,8 @@ class text_separation():
 			i += 1
 		return text[i+1:]
 				
-	def get_advanced_structure(self):
-		structure = self.get_structure()
-		list_indexes = list()
-		for ind, i in enumerate(structure[:-1]):
-			if structure[ind+1]['Type'] == 'list':
-				text = structure[ind+1]['Elements']
-				res = list()
-				for i in text:
-					res.append(self.remove_markers(i))
-				add = ' '.join(res)
-				structure[ind]['Text'] += add
-				structure[ind]['Sentences'][-1] += len(add)
-				list_indexes.append(ind+1)
-		for i in structure:
-			i['Text'] = ''.join([j for j in i['Text'] if j!='\n'])
-		structure = [i for ind,i in enumerate(structure) if not ind in list_indexes]
-		return structure
-
 	def get_list_of_tree(self):
-		self.structure = self.get_advanced_structure()
+		self.structure = self.get_structure()
 		for i in self.structure:
 			root_list = action.construct_tree(i['Text'])
 			i['Synt tree'] = root_list
