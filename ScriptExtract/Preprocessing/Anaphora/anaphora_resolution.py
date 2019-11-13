@@ -1,6 +1,7 @@
 from isanlp import PipelineCommon
 from isanlp.processor_remote import ProcessorRemote
 from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
+from Parser.some_reparser import extract_semantic_relations
 import os
 import numpy as np
 import pandas as pd
@@ -8,7 +9,6 @@ import time
 import pickle
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-
 
 class tree:
 	def __init__(self, value, sentence = None):
@@ -31,10 +31,6 @@ class word:
 		self.anaphor_resolution = None
 		
 def get_tree(text):
-	from isanlp import PipelineCommon
-	from isanlp.processor_remote import ProcessorRemote
-	from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
-	from Parser.some_reparser import extract_semantic_relations
 	HOST = 'localhost'
 	proc_morph = ProcessorRemote(HOST, 3333, 'default')
 	proc_syntax = ProcessorRemote(HOST, 3334, '0')
@@ -88,7 +84,7 @@ def get_tree(text):
 			else:
 				list_[j].sentence = sentences[i]
 				root_list.append(list_[j])
-	return root_list
+	return root_list, relations
 
 def get_subtree(root, postag = 'NOUN', res = None, parent = (None, None)):
 	if res is None:
@@ -166,7 +162,7 @@ def get_antecedent_anaphor(text):
 	s, s1 = 0, 0
 	for ind, item in enumerate(sentences):
 		sentence, num_token = item
-		root = get_tree(sentence)
+		root,relations = get_tree(sentence)
 		if not root is None and len(root) > 0:
 			root = root[0]
 			sent = (root.sentence)
@@ -176,14 +172,17 @@ def get_antecedent_anaphor(text):
 		s1 += len(sentence)
 	return antecedents, anaphors
 
-def get_antecedents_(text, with_tree = False):
-	sentences = separation_to_sentences(text)
+def get_antecedents_(text, sentences, with_tree = False):
+	if sentences is None:
+		sentences = separation_to_sentences(text)
 	antecedents = []
 	s, s1 = 0, 0
 	roots = []
+	full_retlations = []
 	for ind, item in enumerate(sentences):
 		sentence, num_token = item
-		root = get_tree(sentence)
+		root, relations = get_tree(sentence)
+		full_relations += relations
 		if not root is None and len(root) > 0:
 			root = root[0]
 			sent = (root.sentence)
@@ -193,10 +192,11 @@ def get_antecedents_(text, with_tree = False):
 			roots.append(None)
 		s += num_token
 		s1 += len(sentence)
-	return antecedents, roots, sentences
+	return antecedents, roots, sentences, full_relations
+
 import time
-def anaphora_resolution(text):
-	antecedents, roots, sentences = get_antecedents_(text)
+def anaphora_resolution(text, sentences = None):
+	antecedents, roots, sentences, relations = get_antecedents_(text, sentences)
 	antecedents = [transform_elem(i) for i in antecedents]
 	s, s1 = 0, 0
 	global __location__
@@ -223,7 +223,7 @@ def anaphora_resolution(text):
 					print('Bad anaphor', anaphor)
 		s += sentences[ind][1]
 		s1 += len(sentences[ind][0])
-	return roots, sentences
+	return roots, sentences, relations
 
 def transform_elem(elem):
 	new_elem = {}
