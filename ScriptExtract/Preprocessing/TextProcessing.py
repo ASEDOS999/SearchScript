@@ -1,10 +1,10 @@
+import time
+import sys
 from . import action
 from string import punctuation as punct
 from .action import construct_sentence as CS
-import time
-import sys
+from .Anaphora.anaphora_resolution import anaphora_resolution
 from ..SemanticAnalysis import sem_analysis as sa
-import time
 
 class text_separation():
 	def __init__(self, text, base_preproc = True):
@@ -176,6 +176,21 @@ class text_separation():
 			i += 1
 		return text[i+1:]
 				
+	def return_sentences(self):
+		structure = self.get_structure()
+		full_sentences = []
+		for item in structure:
+			text, sent = item['Text'], item['Sentences']
+			sent = [0] + sent
+			sentences = [text[i:sent[ind+1]] for ind,i in enumerate(sent[:-1])]
+			full_sentences += sentences
+		return full_sentences
+	
+	def get_list_of_tree_with_anaphor(self):
+		sentences = self.return_sentences()
+		text = ' '.join(sentences)
+		return anaphora_resolution(text)
+		
 	def get_list_of_tree(self):
 		self.structure = self.get_structure()
 		for i in self.structure:
