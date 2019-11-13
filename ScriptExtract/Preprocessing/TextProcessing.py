@@ -120,13 +120,15 @@ class text_separation():
 		section_name = None
 		while j < len(list_n) - 1:
 			cur_text = text[list_n[j] : list_n[j + 1]]
-			if list_n[j] != list_n[j + 1]:
+			if len(cur_text)==0:
 				if self.PartOfList(cur_text):
 					res = list()
 					while self.PartOfList(cur_text) and j + 2 < len(list_n):
 						res.append(cur_text)
 						j += 1
-						cur_text = text[list_n[j] : list_n[j+1]]
+						while len(cur_text)==0 and j<len(list_n)-1:
+							j+=1
+							cur_text = text[list_n[j] : list_n[j+1]]
 					item = {
 						'Type' : 'list',
 						'Elements':res,
@@ -318,14 +320,16 @@ def cond_instr(act):
 	#if (morph.__contains__('Person') and morph['Person'] == '3' and 
 	#morph.__contains__('Number') and morph['Number'] == 'Sing'):
 	#	return True
+	print(subj)
 	if (len(subj) == 0):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):
 				return lemma != 'быть' and there_is_inf(act)
-			if (morph.__contains__('Person') and morph['Person'] == '2' and
-			morph.__contains__('Aspect') and morph['Aspect'] == 'Perf'
-			and morph.__contains__('Tense') and morph['Tense'] == 'Imp'):
-				return True
+			#if (morph.__contains__('Person') and morph['Person'] == '2' and
+			#morph.__contains__('Aspect') and morph['Aspect'] == 'Perf'
+			#and morph.__contains__('Tense') and morph['Tense'] == 'Imp'):
+			#	print('hi3', act.inform['VERB'][0].lemma)
+			#	return True
 	if (len(subj) == 1 and 
 		morph.__contains__('Person') and morph['Person'] == '2'):
 		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
