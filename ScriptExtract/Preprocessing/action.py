@@ -241,13 +241,10 @@ class action_verb():
 		if self.is_indicative():
 			return 'Indicative'
 		if self.is_imperative():
-			print('hi2')
 			return 'Imperative'
 		if self.is_advparticiple():
-			print('hi3')
 			return 'Adv_Participle'
 		if self.with_participle and self.is_participle():
-			print('hi4')
 			return 'Participle'
 		return 'Verb'
 
