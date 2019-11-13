@@ -126,6 +126,7 @@ class text_separation():
 					while self.PartOfList(cur_text) and j + 2 < len(list_n):
 						res.append(cur_text)
 						j += 1
+						cur_text = text[list_n[j] : list_n[j+1]]
 						while len(cur_text)==0 and j<len(list_n)-1:
 							j+=1
 							cur_text = text[list_n[j] : list_n[j+1]]
@@ -146,6 +147,8 @@ class text_separation():
 					}
 					results.append(item)
 					j += 1
+			else:
+				j+=1
 		list_indexes = list()
 		structure = results
 		for ind, i in enumerate(structure[:-1]):
@@ -320,7 +323,6 @@ def cond_instr(act):
 	#if (morph.__contains__('Person') and morph['Person'] == '3' and 
 	#morph.__contains__('Number') and morph['Number'] == 'Sing'):
 	#	return True
-	print(subj)
 	if (len(subj) == 0):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):
