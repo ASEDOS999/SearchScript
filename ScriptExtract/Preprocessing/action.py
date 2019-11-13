@@ -204,7 +204,7 @@ class action_verb():
 		#print(self.x.value.lemma, self.parent)
 		#if not self.parent is None:
 		#	print(self.parent.value.lemma, self.parent.value.postag)
-		mark = (not self.parent is None and self.parent.value.postag != 'VERB') and self.dependence == 'xcomp'
+		mark = (not self.parent is None and not self.parent.value.postag in ['VERB', 'PART']) and self.dependence == 'xcomp'
 		#print(mark)
 		return mark
 	
