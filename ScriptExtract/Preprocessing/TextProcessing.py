@@ -238,11 +238,13 @@ class table:
 		new_text = []
 		roots, sentences, relations = text_separation(text).get_list_of_tree_with_anaphor()
 		for ind, root in enumerate(roots):
-			_ = RAT(action.get_actions_tree(root))
-			instr_sentence = [act.sentence for act in _]
-			is_instr = 0
-			if len(instr_sentence) > 0 and sentences[ind][0][-1]!= '?':
-				is_instr = 1
+			is_instr = (0,0)
+			if sentences[ind][0][-1]!= '?':
+				_ = RAT(action.get_actions_tree(root), synt_root = root)
+				instr_sentence = [act.type_action for act in _]
+				mark1 = 'Modal1' in instr_sentence
+				mark2 = len([i for i in instr_sentence if i != 'Modal1'])>0
+				is_instr = (int(mark1), int(mark2))
 			try:
 				sent_tag_ud = list()
 				#sent_tag_ud = sa.tag_ud(sentences[inde])
@@ -251,7 +253,8 @@ class table:
 			elem = {
 				"Sentence" : sentences[ind][0],
 				"TagUd" : sent_tag_ud,
-				"IsInstr" : is_instr,
+				"SecondLevel" : is_instr[0],
+				"FirstLevel" : is_instr[1],
 				'Relations' : relations[ind]
 			}
 			res.append(elem)
@@ -307,14 +310,14 @@ def there_is_inf(act):
 def cond_instr(act):
 	if start_proc(act):
 		return False
-	if act.type_action in ['Imperative', 'Modal']:
+	if act.type_action in ['Imperative', 'Modal', 'Modal1']:
 		return True
 	lemma = act.inform['VERB'][0].lemma
 	morph = act.inform['VERB'][0].morph
-	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj'] ]
-	if (morph.__contains__('Person') and morph['Person'] == '3' and 
-	morph.__contains__('Number') and morph['Number'] == 'Sing'):
-		return True
+	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj', 'nsubj:pass'] ]
+	#if (morph.__contains__('Person') and morph['Person'] == '3' and 
+	#morph.__contains__('Number') and morph['Number'] == 'Sing'):
+	#	return True
 	if (len(subj) == 0):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):
@@ -327,14 +330,14 @@ def cond_instr(act):
 		morph.__contains__('Person') and morph['Person'] == '2'):
 		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
 			return lemma != 'быть' and there_is_inf(act)
-		if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
-			return True
+		#if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+		#	return True
 	return False
 
 def instructions(act):
 	return cond_instr(act)
 
-def research_action_tree(root, test = instructions, list_ = None):
+def research_action_tree(root, test = instructions, list_ = None, synt_root = None):
 	if list_ is None:
 		list_ = []
 	if test(root.value):
