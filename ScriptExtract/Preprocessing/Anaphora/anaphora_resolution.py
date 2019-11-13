@@ -182,7 +182,7 @@ def get_antecedents_(text, sentences, with_tree = False):
 	for ind, item in enumerate(sentences):
 		sentence, num_token = item
 		root, relations = get_tree(sentence)
-		full_relations += relations
+		full_relations.append(relations)
 		if not root is None and len(root) > 0:
 			root = root[0]
 			sent = (root.sentence)
