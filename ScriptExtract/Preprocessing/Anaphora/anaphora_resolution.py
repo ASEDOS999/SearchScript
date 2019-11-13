@@ -178,7 +178,7 @@ def get_antecedents_(text, sentences, with_tree = False):
 	antecedents = []
 	s, s1 = 0, 0
 	roots = []
-	full_retlations = []
+	full_relations = []
 	for ind, item in enumerate(sentences):
 		sentence, num_token = item
 		root, relations = get_tree(sentence)
