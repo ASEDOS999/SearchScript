@@ -231,6 +231,31 @@ class table:
 				f.close()
 		return table
 		
+	def extract_one_new(self,text):
+		RAT = research_action_tree
+		s = time.time()
+		res = list()
+		new_text = []
+		roots, sentences, relations = text_separation(text).get_list_of_tree_with_anaphor()
+		for ind, root in enumerate(roots):
+			_ = RAT(action.get_actions_tree(root))
+			instr_sentence = [act.sentence for act in _]
+			is_instr = 0
+			if len(instr_sentence) > 0 and sentences[ind][0][-1]!= '?':
+				is_instr = 1
+			try:
+				sent_tag_ud = list()
+				#sent_tag_ud = sa.tag_ud(sentences[inde])
+			except Exception:
+				sent_tag_ud = list()
+			elem = {
+				"Sentence" : sentences[ind][0],
+				"TagUd" : sent_tag_ud,
+				"IsInstr" : is_instr,
+				'Relations' : relations[ind]
+			}
+			res.append(elem)
+		return res, time.time()-s
 	def extract_one(self, text):
 		RAT = research_action_tree
 		s = time.time()
