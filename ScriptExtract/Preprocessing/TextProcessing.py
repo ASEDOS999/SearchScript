@@ -120,7 +120,7 @@ class text_separation():
 		section_name = None
 		while j < len(list_n) - 1:
 			cur_text = text[list_n[j] : list_n[j + 1]]
-			if len(cur_text)==0:
+			if len(cur_text)!=0:
 				if self.PartOfList(cur_text):
 					res = list()
 					while self.PartOfList(cur_text) and j + 2 < len(list_n):
