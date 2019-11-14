@@ -10,11 +10,11 @@ class text_separation():
 	def __init__(self, text, base_preproc = True):
 		self.text = text
 		if base_preproc:
-			self.text, sites = self.find_site(text)
+			self.text, cites = self.find_cite(text)
 
-	def find_site(self, text):
+	def find_cite(self, text):
 		segm = [i.split(' ') for i in text.split('\n')]
-		sites = list()
+		cites = list()
 		for ind_p, p in enumerate(segm):
 			for ind, word in  enumerate(p):
 				if word.count('.')>1 or ('.' in word and word[-1]!= '.'):
@@ -22,9 +22,9 @@ class text_separation():
 							segm[ind_p][ind] = 'САЙТ.'
 					else:
 						segm[ind_p][ind] = 'САЙТ'
-					sites.append(word)
+					cites.append(word)
 		text = '\n'.join([' '.join(i) for i in segm])
-		return text, sites
+		return text, cites
 
 	def PartOfList(self, cur_text, all = False):
 		def start_analyse():
@@ -191,22 +191,22 @@ class text_separation():
 			full_sentences += sentences
 		return full_sentences
 	
-	def get_list_of_tree_with_anaphor(self):
-		sentences = self.return_sentences()
-		text = ' '.join(sentences)
-		return anaphora_resolution(text)
-		
-	def get_list_of_tree(self):
-		self.structure = self.get_structure()
-		for i in self.structure:
-			root_list = action.construct_tree(i['Text'])
-			i['Synt tree'] = root_list
-		# Transform syntactic tree to action tree
-		for i in self.structure:
-			i['Action tree'] = []
-			for root in i['Synt tree']:
-				i['Action tree'].append(action.get_actions_tree(root))
-		return self.structure
+	def get_list_of_tree(self, with_anaphor = True):
+		if with_anaphor:
+			sentences = self.return_sentences()
+			text = ' '.join(sentences)
+			return anaphora_resolution(text)
+		else:
+			self.structure = self.get_structure()
+			for i in self.structure:
+				root_list = action.construct_tree(i['Text'])
+				i['Synt tree'] = root_list
+			# Transform syntactic tree to action tree
+			for i in self.structure:
+				i['Action tree'] = []
+				for root in i['Synt tree']:
+					i['Action tree'].append(action.get_actions_tree(root))
+			return self.structure
 
 
 class table:
@@ -236,12 +236,12 @@ class table:
 				f.close()
 		return table
 		
-	def extract_one_new(self,text):
+	def extract_one(self,text):
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
 		new_text = []
-		roots, sentences, relations = text_separation(text).get_list_of_tree_with_anaphor()
+		roots, sentences, relations = text_separation(text).get_list_of_tree()
 		for ind, root in enumerate(roots):
 			is_instr = (0,0)
 			if sentences[ind][0][-1]!= '?':
@@ -264,38 +264,6 @@ class table:
 			}
 			res.append(elem)
 		return res, time.time()-s
-	def extract_one(self, text):
-		RAT = research_action_tree
-		s = time.time()
-		res = list()
-		new_text = []
-		list_ = text_separation(text).get_list_of_tree()
-		for i in list_:
-			end = [0] + i['Sentences']
-			try:
-				new_text += [{'Sent':i['Text'][j:end[ind+1]], 'Action tree' : i['Action tree'][ind]} 
-						for ind,j in enumerate(end[:-1])]
-			except:
-				None
-		for sent in new_text:
-			new_list = list()
-			_ = RAT(sent['Action tree'])
-			instr_sentence = [act.sentence for act in _]
-			is_instr = 0
-			if len(instr_sentence) > 0 and sent['Sent'][-1]!= '?':
-				is_instr = 1
-			try:
-				sent_tag_ud = list()
-				#sent_tag_ud = sa.tag_ud(sent['Sent'])
-			except Exception:
-				sent_tag_ud = list()
-			elem = {
-				"Sentence" : sent['Sent'],
-				"TagUd" : sent_tag_ud,
-				"IsInstr" : is_instr
-			}
-			res.append(elem)
-		return res, time.time()-s 
 
 # Test for roots
 def start_proc(act):
