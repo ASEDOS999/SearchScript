@@ -295,9 +295,8 @@ def cond_instr(act):
 			if (morph.__contains__('Person') and morph['Person'] == '3' and 
 			morph.__contains__('Number') and morph['Number'] == 'Sing'):
 				return lemma != 'быть' and there_is_inf(act)
-			if (morph.__contains__('Person') and morph['Person'] == '2' and
-			morph.__contains__('Aspect') and morph['Aspect'] == 'Perf'
-			and morph.__contains__('Tense') and morph['Tense'] == 'Imp'):
+			if (morph.__contains__('Person') and morph['Person'] == '2'and
+			morph.__contains__('Tense') and morph['Tense'] == 'Imp'):
 				return True
 	if (len(subj) == 1 and 
 		morph.__contains__('Person') and morph['Person'] == '2'):
