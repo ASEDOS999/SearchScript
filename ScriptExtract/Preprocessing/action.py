@@ -204,9 +204,13 @@ class action_verb():
 		#print(self.x.value.lemma, self.parent)
 		#if not self.parent is None:
 		#	print(self.parent.value.lemma, self.parent.value.postag)
+		mark1 = False
+		for i in self.x.kids:
+			if i[0].value.postag == 'VERB':
+				mark1 = True
 		mark = (not self.parent is None and not self.parent.value.postag in ['VERB', 'PART']) and self.dependence == 'xcomp'
 		#print(mark)
-		return mark
+		return mark and not mark1
 	
 	def is_indicative(self):
 		return (self.x.value.morph.__contains__('Tense') and 
@@ -284,6 +288,8 @@ def process_type(vert, parent = None, act = None):
 def get_inform_parent(parent, dependence, act, x = None):
 	if parent is None or act is None or x is None:
 		return 0
+	if dependence is 'advmod' and parent.value.postag == 'VERB':
+		act.inform['add_verb'] = [extract_inform((parent, None),None,act.sentence)]
 	if (dependence == 'conj' or action_verb(x, parent, dependence).is_advparticiple()) and action_verb(parent).test():
 		list_subj = ['agent', 'nsubj', 'xsubj']
 		mark = False
