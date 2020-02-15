@@ -61,8 +61,11 @@ def parse(text):
 	except:
 		return None
 def extract_semantic_relations(text):
-	json_results = parse(text)
-	print(json_results)
+	try:
+		json_results = parse(text)
+	except Exception:
+		print("Connection to removed isa parser refused", file = sys.stderr)
+		return []
 	if json_results is None:
 		return []
 	sem = json_results['sem']
