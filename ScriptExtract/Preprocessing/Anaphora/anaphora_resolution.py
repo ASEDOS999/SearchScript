@@ -1,12 +1,16 @@
-from isanlp import PipelineCommon
-from isanlp.processor_remote import ProcessorRemote
-from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
-from Parser.some_reparser import extract_semantic_relations
 import os
 import numpy as np
 import pandas as pd
 import time
 import pickle
+
+from isanlp import PipelineCommon
+from isanlp.processor_remote import ProcessorRemote
+from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
+
+from .Parser import some_reparser
+from .Parser.some_reparser import extract_semantic_relations
+
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
