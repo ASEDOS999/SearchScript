@@ -1,10 +1,14 @@
 import time
 import sys
-from . import action
 from string import punctuation as punct
+
+from . import action
 from .action import construct_sentence as CS
+
 from .Anaphora.anaphora_resolution import anaphora_resolution
+
 from ..SemanticAnalysis import sem_analysis as sa
+
 
 class text_separation():
 	def __init__(self, text, base_preproc = True):
@@ -236,7 +240,7 @@ class table:
 				f.close()
 		return table
 		
-	def extract_one(self,text):
+	def extract_one(self,text, with_tag_ud = False):
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
@@ -250,11 +254,12 @@ class table:
 				mark1 = 'Modal1' in instr_sentence
 				mark2 = len([i for i in instr_sentence if i != 'Modal1'])>0
 				is_instr = (int(mark1), int(mark2))
-			try:
-				sent_tag_ud = list()
-				#sent_tag_ud = sa.tag_ud(sentences[inde])
-			except Exception:
-				sent_tag_ud = list()
+			sent_tag_ud = list()
+			if with_tag_ud:
+				try:
+					sent_tag_ud = sa.tag_ud(sentences[ind])
+				except Exception:
+					sent_tag_ud = list()
 			elem = {
 				"Sentence" : sentences[ind][0],
 				"TagUd" : sent_tag_ud,
