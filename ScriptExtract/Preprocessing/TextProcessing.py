@@ -1,9 +1,7 @@
 import time
-import sys
 from string import punctuation as punct
 
 from . import action
-from .action import construct_sentence as CS
 
 from .Anaphora.anaphora_resolution import anaphora_resolution
 

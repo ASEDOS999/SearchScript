@@ -1,5 +1,3 @@
-import numpy as np
-
 class tree:
 	def __init__(self, value, sentence = None):
 		self.value = value
