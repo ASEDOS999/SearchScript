@@ -64,7 +64,7 @@ def extract_semantic_relations(text):
 	try:
 		json_results = parse(text)
 	except Exception:
-		print("Can not extract semantic relations through isa removed parser", file = sys.stderr)
+		print("Unable to extract semantic relations through isa remote parser", file = sys.stderr)
 		return []
 	if json_results is None:
 		return []
