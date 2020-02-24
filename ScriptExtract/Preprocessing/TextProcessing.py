@@ -242,16 +242,20 @@ class table:
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
-		new_text = []
 		roots, sentences, relations = text_separation(text).get_list_of_tree()
-		for ind, root in enumerate(roots):
+		for ind, root in enumerate(roots): # Each root matches one sentence
 			is_instr = (0,0)
-			if sentences[ind][0][-1]!= '?':
-				_ = RAT(action.get_actions_tree(root), synt_root = root)
-				instr_sentence = [act.type_action for act in _]
+			level = 0
+			if sentences[ind][0][-1] != '?': # Current sentence is not question
+				actions = RAT(action.get_actions_tree(root), synt_root = root)
+				instr_sentence = [act.type_action for act in actions]
 				mark1 = 'Modal1' in instr_sentence
 				mark2 = len([i for i in instr_sentence if i != 'Modal1'])>0
 				is_instr = (int(mark1), int(mark2))
+				if mark1:
+					level = 1
+				if mark2:
+					level = 2
 			sent_tag_ud = list()
 			if with_tag_ud:
 				try:
@@ -260,6 +264,7 @@ class table:
 					sent_tag_ud = list()
 			elem = {
 				"Sentence" : sentences[ind][0],
+				"Actions" : actions,
 				"TagUd" : sent_tag_ud,
 				"SecondLevel" : is_instr[0],
 				"FirstLevel" : is_instr[1],
