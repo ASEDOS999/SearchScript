@@ -7,60 +7,28 @@ This project's purpose is to learn to search scripts from a text. Informally, th
 
 Today we consider only instructive texts. This problem is easier than global problem of scripts search because such texts are simple.
 
+## The Project's Structure
 
-## How Action Is Described
+Before the start of work you have to run script start_docker.py and install library [isanlp](https://github.com/IINemo/isanlp).
 
-The action may be expressed by way of using following parts of speech (PoS):
+A main part is a module 'ScriptExtract.Preprocessing.TextProcessing'. It allows to separate text into sentences, find all actions-instructions and process syntactic dependences and semantic relations.
 
-* verb
-* participle
-* verbal participle.
+Important class in this module is class 'table'. The argument 'use_sem' is bool variable that signals about processing or not processing relations. The methods 'get_table' and 'extract_one' process a list of texts or one text and return dictionary of processed data or this data. This methods input is list of files name as string or one file's name as string.
 
-*Important remark:* presence of any written above PoS in text is not equivalent to action presence in text.
+The structure of data is a list of element. Each element is dictionary with the following fields:
 
-
-Examples of texts with and without actions
- 
-1. *Являясь директором завода, он приказал сделать это.* There is only one action expressed by a verb *приказал*. Also there is a verbal participle *Являясь* not expressing some action.
-2. *Федор пытался разбудить глубоко спящего Ивана.* There are two actions: the action expressed by a verb *пытался* and the action expressed by a participle *спящего*.
-3. *Он был не очень умным и не очень.* There is not action but there is a verb *был*.
-4. *Он обратился к являвшемуся специалисту в этой области Михаилу.* There is only one action expressed by verb *обратился*. Also there is participle *являвшемуся* not expressing some action.
-
-The main characteristics of the actions are the information about:
-
-* semantic children
-* syntactic children
-
-The information about children may be following:
-
-* word of child
-* semantic/syntactic role
-* some word embedding
-* sense group (for example, the group of documents, the group of cars details and etc.)
-
-## Algorithm Description
-
-### Algorithm
-Let's describe method that we use for to solve it. This method can be devided into three steps:
-
-1. Find all verbs in the different verbs
-2. Separate all found verbs into three groups
-
-    * **The First Level:** the verbs that express call for action, i.e. verbs in imperative form, modal verbs of the second person
-    * **The Second Level:** modal verbs that were not included into the First Level
-    * **The Third Level:** other verbs
-
-3. For the all verbs from the first and second level find all semantic/syntactic children and required information about them.
-4. Constuct script's graph
-
-### Children Information
-
-...
-
-### Script's Graph
-
-...
-
-## Project's Structure
-
-...
+* "Sentence" - one processed sentence, type string.
+* "Actions" is a list of found actions. Each action is a class with the several attributes and methods. The most interesting is attribute 'inform'. It is dictionary that includes key "VERB". The value in this key is tuple of three elements - (class word, list of indexes of additional words, None). The other keys mean syntactic dependences with the parent-verb and value in them are similar tuple:
+    * The first element is class word. It has the following attributes:
+        * 'lemma'
+        * 'postag'
+        * 'morph'
+        * 'index' is index of word in sentence
+        * 'begin' is begin of word in sentence in symbols
+        * 'end' is end of word in sentence in symbols
+        * 'role' is semantic role
+        * 'anaphor_resolution' is field for pronouns which anaphora was resolve
+    * The second element is index of additional words. For verb it is depending on it words that has not information between this word. For not verb it is depending syntactic tree.
+    * The third element is a type of dependence. It matches with key of dictionary 'inform'.
+* "TagUd" is a list of TagUd representation of sentence. Now we don't make it.
+* "Relations" is a semantic relations. If 'use_sem' is 'False' it is an empty list.
