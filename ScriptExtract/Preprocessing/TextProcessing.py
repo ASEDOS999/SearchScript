@@ -242,7 +242,7 @@ class table:
 			print('Time',t/60, 'min')
 			print('Processed: %d/%d'%(len(table.keys()), l))
 			with open('table.pickle', 'wb') as f:
-				pickle.dump(res, f)
+				pickle.dump(table, f)
 				f.close()
 		return table
 		

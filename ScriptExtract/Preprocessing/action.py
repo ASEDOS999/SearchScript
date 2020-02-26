@@ -286,8 +286,8 @@ def process_type(vert, parent = None, act = None):
 def get_inform_parent(parent, dependence, act, x = None):
 	if parent is None or act is None or x is None:
 		return 0
-	if dependence is 'advmod' and parent.value.postag == 'VERB':
-		act.inform['add_verb'] = [extract_inform((parent, None),None,act.sentence)]
+	if dependence == 'advmod' and parent.value.postag == 'VERB':
+		act.inform['add_verb'] = [extract_inform((parent, None), None, act.sentence)]
 	if (dependence == 'conj' or action_verb(x, parent, dependence).is_advparticiple()) and action_verb(parent).test():
 		list_subj = ['agent', 'nsubj', 'xsubj']
 		mark = False
