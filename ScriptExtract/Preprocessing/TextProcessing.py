@@ -9,8 +9,9 @@ from ..SemanticAnalysis import sem_analysis as sa
 
 
 class text_separation():
-	def __init__(self, text, base_preproc = True):
+	def __init__(self, text, base_preproc = True, use_sem = True):
 		self.text = text
+		self.use_sem = use_sem
 		if base_preproc:
 			self.text, cites = self.find_cite(text)
 
@@ -145,7 +146,7 @@ class text_separation():
 						'Type' : 'paragraph',
 						'Section' : section_name,
 						'Text' : cur_text,
-						'Sentences' : self.separate_to_sentence(cur_text)
+						'Sentences' : list_sentence
 					}
 					results.append(item)
 					j += 1
@@ -197,7 +198,7 @@ class text_separation():
 		if with_anaphor:
 			sentences = self.return_sentences()
 			text = ' '.join(sentences)
-			return anaphora_resolution(text)
+			return anaphora_resolution(text, use_sem = self.use_sem)
 		else:
 			self.structure = self.get_structure()
 			for i in self.structure:
@@ -212,6 +213,9 @@ class text_separation():
 
 
 class table:
+	def __init__(self, use_sem = True):
+		self.use_sem = use_sem
+		
 	def get_table(self, list_files):
 		l = len(list_files)
 		if 'table.pickle' in os.listdir():
@@ -242,7 +246,7 @@ class table:
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
-		roots, sentences, relations = text_separation(text).get_list_of_tree()
+		roots, sentences, relations = text_separation(text, use_sem = self.use_sem).get_list_of_tree()
 		for ind, root in enumerate(roots): # Each root matches one sentence
 			is_instr = (0,0)
 			level = 0

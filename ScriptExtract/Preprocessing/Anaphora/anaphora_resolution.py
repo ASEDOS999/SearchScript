@@ -34,7 +34,7 @@ class word:
 		self.role = role
 		self.anaphor_resolution = None
 		
-def get_tree(text):
+def get_tree(text, use_sem = True):
 	HOST = 'localhost'
 	proc_morph = ProcessorRemote(HOST, 3333, 'default')
 	proc_syntax = ProcessorRemote(HOST, 3334, '0')
@@ -61,7 +61,10 @@ def get_tree(text):
 			sentence.append(analysis_res['tokens'][j].text)
 		sentences.append(sentence)
 	vertices_list_list = []
-	relations = extract_semantic_relations(text)
+	if use_sem:
+		relations = extract_semantic_relations(text)
+	else:
+		relations = []
 	for j in range(len(analysis_res['lemma'])):
 		vertices_list = []
 		for i in range(len(analysis_res['lemma'][j])):
@@ -176,7 +179,7 @@ def get_antecedent_anaphor(text):
 		s1 += len(sentence)
 	return antecedents, anaphors
 
-def get_antecedents_(text, sentences, with_tree = False):
+def get_antecedents_(text, sentences, use_sem, with_tree = False):
 	if sentences is None:
 		sentences = separation_to_sentences(text)
 	antecedents = []
@@ -185,7 +188,7 @@ def get_antecedents_(text, sentences, with_tree = False):
 	full_relations = []
 	for ind, item in enumerate(sentences):
 		sentence, num_token = item
-		root, relations = get_tree(sentence)
+		root, relations = get_tree(sentence, use_sem = use_sem)
 		full_relations.append(relations)
 		if not root is None and len(root) > 0:
 			root = root[0]
@@ -199,8 +202,8 @@ def get_antecedents_(text, sentences, with_tree = False):
 	return antecedents, roots, sentences, full_relations
 
 import time
-def anaphora_resolution(text, sentences = None):
-	antecedents, roots, sentences, relations = get_antecedents_(text, sentences)
+def anaphora_resolution(text, sentences = None, use_sem = True):
+	antecedents, roots, sentences, relations = get_antecedents_(text, sentences, use_sem)
 	antecedents = [transform_elem(i) for i in antecedents]
 	s, s1 = 0, 0
 	global __location__
