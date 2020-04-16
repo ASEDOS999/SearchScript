@@ -94,6 +94,7 @@ def construct_graph(table, # The result of ScriptExtract.Preprocessing.TextProce
     
     full_list_actions, verb_dict, feature_dict = get_feature_dict(table, key_word)
     table = create_table_of_sets(feature_dict, full_list_actions)
+    table = [i for i in table if 15>len(i) >= 2]
     
     # Vertices list
     V = [i for j in table for i in j]
