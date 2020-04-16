@@ -98,7 +98,6 @@ class text_separation():
 
 	def separate_to_sentence(self, cur_text):
 		list_ = []
-		N = 0
 		num_sent = 0
 		i = cur_text[-1]
 		ind = len(cur_text)-1
