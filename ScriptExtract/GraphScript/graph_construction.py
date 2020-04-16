@@ -72,37 +72,59 @@ def create_table_of_sets(feature_dict, full_list_actions):
             list_of_set.append(new_set)
     return [[(ind,ind1) for ind,ind1 in j] for j in list_of_set]
 
-def construct_graph(table, key_word = "depend_lemma", with_next = False):
+def _add_start(E, V, start, docs):
+    V.append(start)
+    E[start] = []
+    start_docs = [min([i[1] for i in V if i[0] == j]) for j in docs]
+    for ind, i in enumerate(start_docs):
+        v = docs[ind], i
+        E[start].append(v)
+            
+def _add_end(E, V, end, docs):
+    V.append(end)
+    E[end] = []
+    end_docs = [max([i[1] for i in V if i[0] == j]) for j in docs]
+    for ind, i in enumerate(end_docs):
+        v = docs[ind], i
+        E[v].append(end)
+
+def construct_graph(table, # The result of ScriptExtract.Preprocessing.TextProcessing.table().get_table
+                    key_word = "depend_lemma", # The type of abalysed verb argument
+                    with_next = False, # If True Construct edges between neibourghood in one document
+                    start = (-1,-1), end = (-2,-2) # Start and end vertices
+                    ):
+    
     full_list_actions, verb_dict, feature_dict = get_feature_dict(table, key_word)
     table = create_table_of_sets(feature_dict, full_list_actions)
+    
+    # Vertices list
     V = [i for j in table for i in j]
     V.sort(key = lambda x: x[0])
+    
+    # Dictionary for edges (adjacency list)
     E = {v:[] for v in V}
+    
+    # Edges between neibourghood in one document
     if with_next:
         for ind, v in enumerate(V):
             if ind+1 < len(V) and V[ind+1][0] > v[0]:
                 E[v].append(V[ind+1])
+    
+    # Edges between action with same arguments
     for i in table:
         for v in i:
             for v_ in i:
                 if v_ != v and not v_ in E[v]:
                     E[v].append(v_) 
+                    
+    # Adding start and end vertices
     docs = np.unique(np.array([i[0] for i in V]))
-    start_docs = [min([i[1] for i in V if i[0] == j]) for j in docs]
-    end_docs = [max([i[1] for i in V if i[0] == j]) for j in docs]
-    start = (-1, -1)
-    end = (-2, -2)
-    V.append(start)
-    V.append(end)
-    E[start] = []
-    E[end] = []
-    for ind, i in enumerate(start_docs):
-        v = docs[ind], i
-        E[start].append(v)
-    for ind, i in enumerate(end_docs):
-        v = docs[ind], i
-        if not v in E[start]:
-            E[v].append(end)
+    if start is None:
+        start = (-1, -1)
+    if end is None:
+        end = (-2, -2)
+    _add_start(E, V, start, docs)
+    _add_end(E, V, end, docs)
     return (E, V), (start, end), (full_list_actions, verb_dict, feature_dict)
 
 def graph_inform(V, E):
