@@ -25,34 +25,32 @@ def get_feature_dict(table, key_word = "depend_lemma"):
     feature_dict = dict()
     N = 0
     N_verb = 0
-    for key in table:
-        table_text = table[key]
-        for item in table_text:
-            actions = item['Actions']
-            sentence = item['Sentence']
-            for act in actions:
-                b, e = act.inform['VERB'][0].begin, act.inform['VERB'][0].end
-                N_verb += 1
-                verb = sentence[b:e]
-                if verb in verb_dict:
-                    verb_dict[verb] += 1
-                else:
-                    verb_dict[verb] = 1
-                for depend in act.inform:
-                    if not depend in ['punct', 'VERB']:
-                        for w in act.inform[depend]:
-                            N += 1
-                            lemma = w[0].lemma
+    for ind, l in enumerate(full_list_actions):
+        for ind1, act in enumerate(l):
+            sentence = sentences[ind][ind1]
+            b, e = act.inform['VERB'][0].begin, act.inform['VERB'][0].end
+            N_verb += 1
+            verb = sentence[b:e]
+            if verb in verb_dict:
+                verb_dict[verb][(ind,ind1)] = 0
+            else:
+                verb_dict[verb] = {(ind,ind1):0}
+            for depend in act.inform:
+                if not depend in ['punct', 'VERB']:
+                    for w in act.inform[depend]:
+                        N += 1
+                        lemma = w[0].lemma
+                        if not w[0].postag in ['CONJ', 'PRON', 'VERB']:
                             if key_word == "lemma":
                                 if lemma in feature_dict:
-                                    feature_dict[lemma] += 1
+                                    feature_dict[lemma][(ind,ind1)] = 0
                                 else:
-                                    feature_dict[lemma] = 1
+                                    feature_dict[lemma] = {(ind,ind1):0}
                             if key_word == "depend_lemma":
                                 if (depend, lemma) in feature_dict:
-                                    feature_dict[(depend, lemma)] += 1
+                                    feature_dict[(depend, lemma)][(ind,ind1)] = 0
                                 else:
-                                    feature_dict[(depend, lemma)] = 1
+                                    feature_dict[(depend, lemma)] = {(ind,ind1):0}
     return full_list_actions, verb_dict, feature_dict
 
 def create_table_of_sets(feature_dict, full_list_actions):
