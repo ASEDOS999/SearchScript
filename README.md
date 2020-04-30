@@ -11,6 +11,10 @@ Do the following steps:
 
 3. `python3 setup.py install`
 
+Before each start of work run the following command:
+
+    `bash start_docher.sh`
+
 ## The Project`s Purpose
 
 This project`s purpose is to learn to search scripts from a text. Informally, the script is a set of action, their characterstics and model of steps between this actions, i.e. the rules ordering actions. The formal description of the script you can find in the file [???](???). To find the script means to find information about all actions descibed in the text and about their relationships.
