@@ -3,11 +3,13 @@ Project on searching "scripts" in russian texts.
 
 ## Package Installation
 
-Run the following strings:
+Do the following steps:
 
-1. `pip install -r  requirements.txt`
+1. `git clone https://github.com/ASEDOS999/SearchScript`
 
-2. `python3 setup.py install`
+2. `pip install -r  requirements.txt`
+
+3. `python3 setup.py install`
 
 ## The Project`s Purpose
 
