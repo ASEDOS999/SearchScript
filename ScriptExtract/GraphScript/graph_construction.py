@@ -11,15 +11,19 @@ import numpy as np
 def get_feature_dict(table, key_word = "depend_lemma"):
     full_list_actions = []
     sentences = []
+    relations = []
     for key in table:
         table_text = table[key]
         help_list = []
         help_sentences = []
+        help_relations = []
         for item in table_text:
             for act in item['Actions']:
                 help_sentences.append(item["Sentence"])
+                help_relations.append(item['Relations'])
                 help_list.append(act)
         sentences.append(help_sentences)
+        relations.append(help_relations)
         full_list_actions.append(help_list)
     verb_dict = dict()
     feature_dict = dict()
@@ -28,29 +32,48 @@ def get_feature_dict(table, key_word = "depend_lemma"):
     for ind, l in enumerate(full_list_actions):
         for ind1, act in enumerate(l):
             sentence = sentences[ind][ind1]
-            b, e = act.inform['VERB'][0].begin, act.inform['VERB'][0].end
-            N_verb += 1
-            verb = sentence[b:e]
-            if verb in verb_dict:
-                verb_dict[verb][(ind,ind1)] = 0
-            else:
-                verb_dict[verb] = {(ind,ind1):0}
-            for depend in act.inform:
-                if not depend in ['punct', 'VERB']:
-                    for w in act.inform[depend]:
-                        N += 1
-                        lemma = w[0].lemma
-                        if not w[0].postag in ['CONJ', 'PRON', 'VERB']:
-                            if key_word == "lemma":
-                                if lemma in feature_dict:
-                                    feature_dict[lemma][(ind,ind1)] = 0
-                                else:
-                                    feature_dict[lemma] = {(ind,ind1):0}
-                            if key_word == "depend_lemma":
-                                if (depend, lemma) in feature_dict:
-                                    feature_dict[(depend, lemma)][(ind,ind1)] = 0
-                                else:
-                                    feature_dict[(depend, lemma)] = {(ind,ind1):0}
+            if act.inform['VERB'] is not None:
+                act.inform['SEM_REL'] = relations[ind][ind1]
+                b, e = act.inform['VERB'][0].begin, act.inform['VERB'][0].end
+                N_verb += 1
+                verb = sentence[b:e]
+                if verb in verb_dict:
+                    verb_dict[verb][(ind,ind1)] = 0
+                else:
+                    verb_dict[verb] = {(ind,ind1):0}
+                for depend in act.inform:
+                    if not depend in ['punct', 'VERB', 'SEM_REL']:
+                        for w in act.inform[depend]:
+                            N += 1
+                            lemma = w[0].lemma
+                            if not w[0].postag in ['CONJ', 'PRON', 'VERB']:
+                                if key_word == "lemma":
+                                    if lemma in feature_dict:
+                                        feature_dict[lemma][(ind,ind1)] = 0
+                                    else:
+                                        feature_dict[lemma] = {(ind,ind1):0}
+                                if key_word == "depend_lemma":
+                                    if (depend, lemma) in feature_dict:
+                                        feature_dict[(depend, lemma)][(ind,ind1)] = 0
+                                    else:
+                                        feature_dict[(depend, lemma)] = {(ind,ind1):0}     
+                if key_word == 'sem_rel':
+                    rel = relations[ind][ind1]
+                    for r in rel:
+                        parent, child = r['parent'], r['child']
+                        if (act.inform['VERB'][0].begin == parent['start'] and
+                            act.inform['VERB'][0].end == parent['end']):
+                            for j in act.inform:
+                                if j != 'VERB' and j != 'SEM_REL':
+                                    for word in act.inform[j]:
+                                        if (word[0].begin == child['start'] and
+                                            word[0].end == child['end']):
+                                            lemma = word[0].lemma
+                                            tp = r['tp']
+                                            if lemma in feature_dict:
+                                                feature_dict[lemma][(ind,ind1)] = tp
+                                            else:
+                                                feature_dict[lemma] = {(ind,ind1):tp}
     return full_list_actions, verb_dict, feature_dict
 
 def create_table_of_sets(feature_dict, full_list_actions):
@@ -89,12 +112,13 @@ def _add_end(E, V, end, docs):
 def construct_graph(table, # The result of ScriptExtract.Preprocessing.TextProcessing.table().get_table
                     key_word = "depend_lemma", # The type of abalysed verb argument
                     with_next = False, # If True Construct edges between neibourghood in one document
-                    start = (-1,-1), end = (-2,-2) # Start and end vertices
+                    start = (-1,-1), end = (-2,-2), # Start and end vertices
+                    min_set = 2, max_set = np.infty
                     ):
     
     full_list_actions, verb_dict, feature_dict = get_feature_dict(table, key_word)
     table = create_table_of_sets(feature_dict, full_list_actions)
-    table = [i for i in table if 15>len(i) >= 2]
+    table = [i for i in table if max_set>len(i) >= min_set]
     
     # Vertices list
     V = [i for j in table for i in j]
