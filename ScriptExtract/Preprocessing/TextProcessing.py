@@ -258,10 +258,10 @@ class table:
 	def __init__(self, use_sem = True):
 		self.use_sem = use_sem
 		
-	def get_table(self, list_files, test = instructions):
+	def get_table(self, list_files, test = instructions, name_table = 'table.pickle'):
 		l = len(list_files)
-		if 'table.pickle' in os.listdir():
-			with open('table.pickle', 'rb') as f:
+		if name_table in os.listdir():
+			with open(name_table, 'rb') as f:
 				table = pickle.load(f)
 				f.close()
 		else:
@@ -279,7 +279,7 @@ class table:
 			table[key], t = self.extract_one(texts[key], test = test)
 			print('Time',t/60, 'min')
 			print('Processed: %d/%d'%(len(table.keys()), l))
-			with open('table.pickle', 'wb') as f:
+			with open(name_table, 'wb') as f:
 				pickle.dump(table, f)
 				f.close()
 		return table
