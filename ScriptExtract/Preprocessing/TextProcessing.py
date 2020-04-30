@@ -9,7 +9,7 @@ from . import action
 
 from .Anaphora.anaphora_resolution import anaphora_resolution
 
-from ..SemanticAnalysis import sem_analysis as sa
+#from ..SemanticAnalysis import sem_analysis as sa
 
 
 # Tests for instuctions
@@ -284,7 +284,9 @@ class table:
 				f.close()
 		return table
 		
-	def extract_one(self,text, with_tag_ud = False, test = instructions):
+	def extract_one(self,text,
+                     #with_tag_ud = False,
+                     test = instructions):
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
@@ -299,11 +301,11 @@ class table:
 				mark2 = len([i for i in instr_sentence if i != 'Modal1'])>0
 				is_instr = (int(mark1), int(mark2))
 			sent_tag_ud = list()
-			if with_tag_ud:
-				try:
-					sent_tag_ud = sa.tag_ud(sentences[ind])
-				except Exception:
-					sent_tag_ud = list()
+			#if with_tag_ud:
+			#	try:
+			#		sent_tag_ud = sa.tag_ud(sentences[ind])
+			#	except Exception:
+			#		sent_tag_ud = list()
 			elem = {
 				"Sentence" : sentences[ind][0],
 				"Actions" : actions,
