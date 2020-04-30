@@ -1,3 +1,7 @@
+from isanlp import PipelineCommon
+from isanlp.processor_remote import ProcessorRemote
+from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
+
 class tree:
 	def __init__(self, value, sentence = None):
 		self.value = value
@@ -15,10 +19,6 @@ class word:
 		self.index = index
 
 def get_tree(text):
-	from isanlp import PipelineCommon
-	from isanlp.processor_remote import ProcessorRemote
-	from isanlp.ru.converter_mystem_to_ud import ConverterMystemToUd
-	
 	HOST = 'localhost'
 	proc_morph = ProcessorRemote(HOST, 3333, 'default')
 	proc_syntax = ProcessorRemote(HOST, 3334, '0')
