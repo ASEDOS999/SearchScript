@@ -12,6 +12,45 @@ from .Anaphora.anaphora_resolution import anaphora_resolution
 from ..SemanticAnalysis import sem_analysis as sa
 
 
+# Tests for instuctions
+def cond_instr(act):
+	if start_proc(act):
+		return False
+	if act.type_action in ['Imperative', 'Modal', 'Modal1']:
+		return True
+	lemma = act.inform['VERB'][0].lemma
+	morph = act.inform['VERB'][0].morph
+	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj', 'nsubj:pass'] ]
+	#if (morph.__contains__('Person') and morph['Person'] == '3' and 
+	#morph.__contains__('Number') and morph['Number'] == 'Sing'):
+	#	return True
+	if (len(subj) == 0):
+			if (morph.__contains__('Person') and morph['Person'] == '3' and 
+			morph.__contains__('Number') and morph['Number'] == 'Sing'):
+				return lemma != 'быть' and there_is_inf(act)
+			if (morph.__contains__('Person') and morph['Person'] == '2'and
+			morph.__contains__('Tense') and morph['Tense'] == 'Imp'):
+				return True
+	if (len(subj) == 1 and 
+		morph.__contains__('Person') and morph['Person'] == '2'):
+		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
+			return lemma != 'быть' and there_is_inf(act)
+		#if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
+		#	return True
+	return False
+
+def instructions(act):
+	return cond_instr(act)
+
+def research_action_tree(root, test = instructions, list_ = None, synt_root = None):
+	if list_ is None:
+		list_ = []
+	if test(root.value):
+		list_.append(root.value)
+	for i in root.kids:
+		list_ = research_action_tree(i[0], test, list_)
+	return list_
+
 class text_separation():
 	def __init__(self, text, base_preproc = True, use_sem = True):
 		self.text = text
@@ -219,7 +258,7 @@ class table:
 	def __init__(self, use_sem = True):
 		self.use_sem = use_sem
 		
-	def get_table(self, list_files):
+	def get_table(self, list_files, test = instructions):
 		l = len(list_files)
 		if 'table.pickle' in os.listdir():
 			with open('table.pickle', 'rb') as f:
@@ -237,7 +276,7 @@ class table:
 
 		for key in keys:
 			print(key)
-			table[key], t = self.extract_one(texts[key])
+			table[key], t = self.extract_one(texts[key], test = test)
 			print('Time',t/60, 'min')
 			print('Processed: %d/%d'%(len(table.keys()), l))
 			with open('table.pickle', 'wb') as f:
@@ -245,7 +284,7 @@ class table:
 				f.close()
 		return table
 		
-	def extract_one(self,text, with_tag_ud = False):
+	def extract_one(self,text, with_tag_ud = False, test = instructions):
 		RAT = research_action_tree
 		s = time.time()
 		res = list()
@@ -254,7 +293,7 @@ class table:
 			is_instr = (0,0)
 			actions = []
 			if sentences[ind][0][-1] != '?': # Current sentence is not question
-				actions = RAT(action.get_actions_tree(root), synt_root = root)
+				actions = RAT(action.get_actions_tree(root), synt_root = root, test = test)
 				instr_sentence = [act.type_action for act in actions]
 				mark1 = 'Modal1' in instr_sentence
 				mark2 = len([i for i in instr_sentence if i != 'Modal1'])>0
@@ -290,41 +329,3 @@ def there_is_inf(act):
 					return True
 	return False
 
-# Tests for instuctions
-def cond_instr(act):
-	if start_proc(act):
-		return False
-	if act.type_action in ['Imperative', 'Modal', 'Modal1']:
-		return True
-	lemma = act.inform['VERB'][0].lemma
-	morph = act.inform['VERB'][0].morph
-	subj = [i for k in act.inform.keys() for i in act.inform[k] if k in ['agent', 'xsubj', 'nsubj', 'subj', 'nsubj:pass'] ]
-	#if (morph.__contains__('Person') and morph['Person'] == '3' and 
-	#morph.__contains__('Number') and morph['Number'] == 'Sing'):
-	#	return True
-	if (len(subj) == 0):
-			if (morph.__contains__('Person') and morph['Person'] == '3' and 
-			morph.__contains__('Number') and morph['Number'] == 'Sing'):
-				return lemma != 'быть' and there_is_inf(act)
-			if (morph.__contains__('Person') and morph['Person'] == '2'and
-			morph.__contains__('Tense') and morph['Tense'] == 'Imp'):
-				return True
-	if (len(subj) == 1 and 
-		morph.__contains__('Person') and morph['Person'] == '2'):
-		if morph.__contains__('Aspect') and morph['Aspect'] == 'Imp':
-			return lemma != 'быть' and there_is_inf(act)
-		#if morph.__contains__('Aspect') and morph['Aspect'] == 'Perf':
-		#	return True
-	return False
-
-def instructions(act):
-	return cond_instr(act)
-
-def research_action_tree(root, test = instructions, list_ = None, synt_root = None):
-	if list_ is None:
-		list_ = []
-	if test(root.value):
-		list_.append(root.value)
-	for i in root.kids:
-		list_ = research_action_tree(i[0], test, list_)
-	return list_
