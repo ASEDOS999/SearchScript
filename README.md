@@ -1,6 +1,14 @@
 # SearchScript
 Project on searching "scripts" in russian texts.
 
+## Package Installation
+
+Run the following strings:
+
+1. `pip install -r  requirements.txt`
+
+2. `python3 setup.py install`
+
 ## The Project`s Purpose
 
 This project`s purpose is to learn to search scripts from a text. Informally, the script is a set of action, their characterstics and model of steps between this actions, i.e. the rules ordering actions. The formal description of the script you can find in the file [???](???). To find the script means to find information about all actions descibed in the text and about their relationships.
