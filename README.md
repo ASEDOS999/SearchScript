@@ -15,7 +15,7 @@ Do the following steps:
 
 Before each start of work run the following command:
 
-`bash start_docher.sh`
+`bash start_docker.sh`
 
 ## The Project`s Purpose
 
