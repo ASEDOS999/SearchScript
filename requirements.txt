@@ -3,4 +3,5 @@ scipy
 sklearn
 google
 grpcio
-isanlp
+pandas
+git+https://github.com/IINemo/isanlp.git
