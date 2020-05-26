@@ -11,9 +11,11 @@ Do the following steps:
 
 3. `python3 setup.py install`
 
+4. (optional) `pip install jupyterlab`
+
 Before each start of work run the following command:
 
-    `bash start_docher.sh`
+`bash start_docker.sh`
 
 ## The Project`s Purpose
 
