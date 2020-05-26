@@ -7,6 +7,9 @@ Created on Thu Apr 16 06:06:57 2020
 """
 
 import numpy as np
+import copy
+from ScriptExtract.Preprocessing.TextProcessing import table
+from ScriptExtract.GraphScript import graph_construction
 
 def get_feature_dict(table, key_word = "depend_lemma"):
     full_list_actions = []
@@ -160,3 +163,126 @@ def graph_inform(V, E):
     print("The out-edges number", s1)
     print("The vertices number", len(V))
     print("The number of document", len(np.unique(np.array([i[0] for i in V]))))
+	
+	
+
+def equal_word(word, word1):
+    return word.begin == word1['start'] and word.end == word1['end']
+
+class script:
+    def __init__(self, V, E, full_list_actions, start = (-1,-1), end = (-2,-2)):
+        self.V, self.E = V, E
+        self.start = start
+        self.end = end
+        self.V_inform, self.E_inform = self._reconstruct(V, E, full_list_actions)
+        self.V_descr = {}
+        self.bad_BFS()
+
+    def _reconstruct(self, V, E, full_list_actions):
+        E = E
+        V = {v: self._get_inform(v, full_list_actions) for v in V}
+        return V, E
+    
+    def bad_BFS(self):
+        start, end = self.start, self.end
+        self.V.sort(key = lambda x: x[0])
+        self.V = [i for i in self.V if i!= start and i!=end]
+        self.V = [start] + self.V + [end]
+        self.V_descr[start] = {}
+        previous = start
+        for v in self.V[1:]:
+            if v in self.E and len(self.E[v]) >0 or v == end:
+                self.V_descr[v] = copy.deepcopy(self.V_descr[previous])
+                self.update(v)
+                previous = v
+        return None
+    
+    def update(self, v):
+        inform = self.V_inform[v]
+        if 'Sentence' in inform:
+            sentence = inform['Sentence']
+            self.V_descr[v]['Sentence'] = sentence
+        else:
+            self.V_descr[v]['Sentence'] = ''
+        if 'локатив' in inform:
+            self.V_descr[v]['локатив'] = {'локатив':inform['локатив'],
+                                          'Sentence':sentence}
+        if 'объект' in inform:
+            obj = {'объект':inform['объект'],
+                    'verb':inform['VERB'],
+                  'Sentence':sentence}
+            if 'объект' in self.V_descr[v]:
+                self.V_descr[v]['объект'].append(obj)
+            else:
+                self.V_descr[v]['объект'] = [obj]
+        if 'субъект' in inform:
+            subj = {'субъект':inform['субъект'],
+                    'verb':inform['VERB'],
+                   'Sentence':sentence}
+            if 'субъект' in self.V_descr[v]:
+                self.V_descr[v]['субъект'].append(subj)
+            else:
+                self.V_descr[v]['субъект'] = [subj]
+        if 'темпоратив' in inform:
+            self.V_descr[v]['темпоратив'] = {'темпоратив':inform['темпоратив'],
+                                          'Sentence':sentence}
+        
+    def _get_inform(self, v, full_list_actions):
+        if v == self.start or v == self.end:
+            return {}
+        act = full_list_actions[v[0]][v[1]]
+        inform = {}
+        inform['Sentence'] = act.sentence
+        inform['VERB'] = act.inform['VERB']
+        for j in act.inform['SEM_REL']:
+            type_rel = j['tp']
+            parent = j['parent']
+            child = j['child']
+            if equal_word(act.inform['VERB'][0], parent):
+                for key in act.inform:
+                    if not key in ['VERB', 'SEM_REL']:
+                        for word, list_depend, _ in act.inform[key]:
+                            if equal_word(word, child):
+                                if type_rel in inform:
+                                    inform[type_rel].append((word, list_depend))
+                                else:
+                                    inform[type_rel] = [(word, list_depend)]
+        return inform
+    
+    def GetNext(self, v):
+        return self.E[v]
+	
+def get_srcipt(list_files, name_table = "1.pickle"):
+	table_ = table().get_table(list_files, test = lambda act: True, name_table = name_table)
+	(E, V), (start, end), (full_list_actions, verb_dict, feature_dict) = graph_construction.construct_graph(table_, key_word = 'sem_rel')
+	script_ = script(V,E, full_list_actions)
+	return script_
+
+def union(sentence, list_):
+    q = list(np.array(sentence)[list_])
+    return ' '.join(q)
+
+def print_dict(v_desr):
+    if 'Sentence' in v_desr:
+        print(' '.join(v_desr['Sentence']))
+    if 'локатив' in v_desr:
+        print('\nлокатив:'.upper())
+        print("%s (%s)"%(v_desr['локатив']['локатив'][0][0].lemma,
+                         union(v_desr['локатив']['Sentence'], v_desr['локатив']['локатив'][0][1])))
+    if 'темпоратив' in v_desr:
+        print('\nтемпоратив:'.upper())
+        print("%s (%s)"%(v_desr['темпоратив'][0].lemma, union(v_desr['Sentence'], v_desr['темпоратив'][1])))
+    if 'объект' in v_desr:
+        print('\nобъект'.upper())
+        obj = v_desr['объект']
+        for i in obj:
+            for j in i['объект']:
+                print("%s (%s) - %s (%s)"%(j[0].lemma, union(i['Sentence'], j[1]),
+                                           i['verb'][0].lemma, union(i['Sentence'], i['verb'][1])))
+    if 'субъект' in v_desr:
+        print('\nсубъект'.upper())
+        obj = v_desr['субъект']
+        for i in obj:
+            for j in i['субъект']:
+                print("%s (%s) - %s (%s)"%(j[0].lemma, union(i['Sentence'], j[1]),
+                                           i['verb'][0].lemma, union(i['Sentence'], i['verb'][1])))
