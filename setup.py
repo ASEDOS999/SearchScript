@@ -16,5 +16,6 @@ setup(name='ScriptExtract',
       author_email='kuruzov.ia@phystech.edu',
       description='Script Extractions',
       packages=find_packages(exclude=['ScriptExtract']),
+      include_package_data = True,
       long_description=open('README.md').read(),
       zip_safe=False)
