@@ -112,12 +112,20 @@ def _add_end(E, V, end, docs):
         v = docs[ind], i
         E[v].append(end)
 
-def construct_graph(table, # The result of ScriptExtract.Preprocessing.TextProcessing.table().get_table
-                    key_word = "depend_lemma", # The type of abalysed verb argument
-                    with_next = False, # If True Construct edges between neibourghood in one document
-                    start = (-1,-1), end = (-2,-2), # Start and end vertices
+def construct_graph(table,
+                    key_word = "depend_lemma",
+                    with_next = False,
+                    start = (-1,-1), end = (-2,-2), 
                     min_set = 2, max_set = np.infty
                     ):
+    """
+    'table' is The result of 
+        ScriptExtract.Preprocessing.TextProcessing.table().get_table
+    'key_word' is type of analysed verb argument
+    'with_next' is booolean. If True Construct edges 
+        between neibourghood in one document.
+    'start' and 'end' are tuples of two integers. It is start and end vertices in graph.
+    """
     
     full_list_actions, verb_dict, feature_dict = get_feature_dict(table, key_word)
     table = create_table_of_sets(feature_dict, full_list_actions)
